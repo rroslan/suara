@@ -27,7 +27,7 @@
 .pub-cache/
 .pub/
 build/
-app/google-services.json
+android/app/google-services.json
 # Android related
 **/android/**/gradle-wrapper.jar
 **/android/.gradle
