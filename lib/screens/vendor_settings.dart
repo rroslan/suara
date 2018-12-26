@@ -23,8 +23,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   //var _latTxtController = TextEditingController(text: widget._latitude.toString());
   //var _longTxtController = TextEditingController(text: widget._longitude.toString());
 
-  void navigateToSettingsPage(String title) {
-    Navigator.of(context).push(MaterialPageRoute(
+  Future<dynamic> navigateToSettingsPage(String title) {
+    return Navigator.of(context).push(MaterialPageRoute(
         fullscreenDialog: true,
         builder: (BuildContext context) => ChangeVendorSettingPage(title)));
   }
@@ -68,29 +68,41 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           ListTile(
             title: Text('Business Name'),
             subtitle: Text('Untitled'),
-            onTap: () {
-              navigateToSettingsPage('Business Name');
+            onTap: () async {
+              var businessName = await navigateToSettingsPage('Business Name');
+              if(businessName != null){
+                _vendorSettings.businessName = businessName;
+              }
             },
           ),
           ListTile(
             title: Text('Business Description'),
             subtitle: Text('Untitled'),
-            onTap: () {
-              navigateToSettingsPage('Business Description');
+            onTap: () async {
+              var businessDesc = await navigateToSettingsPage('Business Description');
+              if(businessDesc != null){
+                _vendorSettings.businessDesc = businessDesc;
+              }
             },
           ),
           ListTile(
             title: Text('FB Page URL'),
             subtitle: Text('Untitled'),
-            onTap: () {
-              navigateToSettingsPage('FB Page URL');
+            onTap: () async {
+              var fbURL = await navigateToSettingsPage('FB Page URL');
+              if(fbURL != null){
+                _vendorSettings.fbURL = fbURL;
+              }
             },
           ),
           ListTile(
             title: Text('Location'),
             subtitle: Text('Lat: 0.000  |  Long: 0.000'),
-            onTap: () {
-              navigateToSettingsPage('Location');
+            onTap: () async {
+              var location = await navigateToSettingsPage('Location');
+              if(location != null){
+                _vendorSettings.location = location;
+              }
             },
           ),
           ListTile(
@@ -117,12 +129,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
               onPressed: () {
                 FirebaseAuth.instance.currentUser().then((onValue) {
                   print(onValue.uid);
-                  var vendorSettings = _vendorSettings.toJson(
-                      'Fiverr',
-                      'A Company',
-                      'https://www.facebook.com',
-                      '37.4219983',
-                      '-122.084');
+                  var vendorSettings = _vendorSettings.toJson();
                   Firestore.instance
                       .collection('vendorsettings')
                       .document(onValue.uid)
@@ -145,17 +152,61 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
 
 class ChangeVendorSettingPage extends StatelessWidget {
   final _appBarTitle;
+  final TextEditingController _txt1 = TextEditingController(text: 'sup');
+  final TextEditingController _txt2 = TextEditingController(text: 'sup');
 
   ChangeVendorSettingPage(this._appBarTitle);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_appBarTitle),
-      ),
-      body: Center(
-        child: Text('settings'),
-      ),
-    );
+        appBar: AppBar(
+          title: Text(_appBarTitle),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('SAVE',style: TextStyle(color: Colors.white),),
+              onPressed: () {
+                dynamic returnVal = _appBarTitle.toString().toLowerCase() == 'location' ? {'latitude':_txt1.text, 'longitude':_txt2.text} : _txt1.text;
+                Navigator.of(context).pop(returnVal);
+              },
+            )
+          ],
+        ),
+        body: ListView(
+          children: <Widget>[
+            ListTile(
+              title: _appBarTitle.toString().toLowerCase() ==
+                      'business description'
+                  ? TextField(
+                    controller: _txt1,
+                      autofocus: true,
+                      maxLines: 10,
+                      decoration: InputDecoration(labelText: 'Enter a value'),
+                    )
+                  : _appBarTitle.toString().toLowerCase() == 'location'
+                      ? Column(
+                          children: <Widget>[
+                            TextField(
+                              controller: _txt1,
+                              autofocus: true,
+                              decoration:
+                                  InputDecoration(labelText: 'Enter latitude'),
+                            ),
+                            TextField(
+                              controller: _txt2,
+                              autofocus: true,
+                              decoration:
+                                  InputDecoration(labelText: 'Enter longitude'),
+                            )
+                          ],
+                        )
+                      : TextField(
+                        controller: _txt1,
+                          autofocus: true,
+                          decoration:
+                              InputDecoration(labelText: 'Enter a value'),
+                        ),
+            )
+          ],
+        ));
   }
 }
