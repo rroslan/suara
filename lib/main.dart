@@ -41,10 +41,87 @@ class _MyHomePageState extends State<MyHomePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   FirebaseUser loggedInUser;
 
+  String phoneNo = '+94766674770';
+  String smsCode;
+  String verificationId;
+
+  Future<void> verifyPhone()async{
+    final PhoneCodeSent smsCodeSent = (String veriId, [int forceCodeResend]){
+      this.verificationId = veriId;
+      smsCodeDialog(context).then((value){
+        print('signed in');
+      });
+    };
+
+    final PhoneVerificationCompleted verifiedSuccess = (FirebaseUser user){
+      print('verified');
+    };
+
+    final PhoneVerificationFailed verificationFailed = (AuthException ex){
+      print(ex.message);
+    };
+
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: this.phoneNo,
+      codeAutoRetrievalTimeout: (veriId){
+        verificationId = veriId;
+      },
+      codeSent: smsCodeSent,
+      timeout: const Duration(seconds: 5),
+      verificationCompleted: verifiedSuccess,
+      verificationFailed: verificationFailed
+    );
+  }
+
+  Future<bool> smsCodeDialog(BuildContext context){
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context){
+        return new AlertDialog(
+          title: Text('Enter SMS code'),
+          content: TextField(
+            onChanged: (value){
+              this.smsCode = value;
+            },
+          ),
+          contentPadding: EdgeInsets.all(10.0),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: (){
+                FirebaseAuth.instance.currentUser().then((user){
+                  if(user!=null){
+                    Navigator.of(context).pop();
+                  }else{
+                    Navigator.of(context).pop();
+                    signIn();
+                  }
+                });
+              },
+            )
+          ],
+        );
+      }
+    );
+  }
+
+  signIn(){
+    FirebaseAuth.instance.signInWithPhoneNumber(
+      verificationId: this.verificationId,
+      smsCode: this.smsCode
+    ).then((user){
+
+    }).catchError((error){
+      print(error);
+    });
+  }
+
   @override
   void initState() {
       super.initState();
       _dbRef = FirebaseDatabase.instance.reference().child('AnonUsers');
+      verifyPhone();
     }
 
   @override
@@ -110,7 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             onPressed: loggedInUser != null ? () {
               var route = MaterialPageRoute(
-                  builder: (BuildContext context) => loggedInUser.isAnonymous ? PhoneLoginScreen() : VendorSettingsScreen());
+                  builder: (BuildContext context) => loggedInUser.isAnonymous ? PhoneLoginScreen(currentLocation["latitude"], currentLocation["longitude"]) : VendorSettingsScreen(currentLocation["latitude"], currentLocation["longitude"]));
 
               Navigator.of(context).push(route);
             } : null,
