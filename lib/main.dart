@@ -186,10 +186,11 @@ class _MyHomePageState extends State<MyHomePage> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: loggedInUser != null ? () {
-              var route = MaterialPageRoute(
+              /*var route = MaterialPageRoute(
                   builder: (BuildContext context) => loggedInUser.isAnonymous ? PhoneLoginScreen(currentLocation["latitude"], currentLocation["longitude"]) : VendorSettingsScreen(currentLocation["latitude"], currentLocation["longitude"]));
 
-              Navigator.of(context).push(route);
+              Navigator.of(context).push(route);*/
+              Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context)=>VendorSettingsScreen(currentLocation["latitude"], currentLocation["longitude"])));
             } : null,
           )
         ],
