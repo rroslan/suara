@@ -67,41 +67,51 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
         children: <Widget>[
           ListTile(
             title: Text('Business Name'),
-            subtitle: Text('Untitled'),
+            subtitle: Text(_vendorSettings.businessName != null ? _vendorSettings.businessName : 'Unspecified'),
             onTap: () async {
               var businessName = await navigateToSettingsPage('Business Name');
-              if(businessName != null){
-                _vendorSettings.businessName = businessName;
+              if (businessName != null) {
+                setState(() {
+                  _vendorSettings.businessName = businessName;
+                });
               }
             },
           ),
           ListTile(
             title: Text('Business Description'),
-            subtitle: Text('Untitled'),
+            subtitle: Text(_vendorSettings.businessDesc != null ? _vendorSettings.businessDesc : 'Unspecified'),
             onTap: () async {
-              var businessDesc = await navigateToSettingsPage('Business Description');
-              if(businessDesc != null){
-                _vendorSettings.businessDesc = businessDesc;
+              var businessDesc =
+                  await navigateToSettingsPage('Business Description');
+              if (businessDesc != null) {
+                setState(() {
+                  _vendorSettings.businessDesc = businessDesc;
+                });
               }
             },
           ),
           ListTile(
             title: Text('FB Page URL'),
-            subtitle: Text('Untitled'),
+            subtitle: Text(_vendorSettings.fbURL != null ? _vendorSettings.fbURL : 'Unspecified'),
             onTap: () async {
               var fbURL = await navigateToSettingsPage('FB Page URL');
-              if(fbURL != null){
-                _vendorSettings.fbURL = fbURL;
+              if (fbURL != null) {
+                setState(() {
+                  _vendorSettings.fbURL = fbURL;
+                });
               }
             },
           ),
           ListTile(
             title: Text('Location'),
-            subtitle: Text('Lat: 0.000  |  Long: 0.000'),
+            subtitle: Text(
+                _vendorSettings.location != null ? 'Lat: ${_vendorSettings.location['latitude']}  |  Long: ${_vendorSettings.location['longitude']}' : 'Lat: 0.0000  |  Long: 0.0000'),
             onTap: () async {
               var location = await navigateToSettingsPage('Location');
-              if(location != null){
-                _vendorSettings.location = location;
+              if (location != null) {
+                setState(() {
+                  _vendorSettings.location = location;
+                });
               }
             },
           ),
@@ -152,8 +162,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
 
 class ChangeVendorSettingPage extends StatelessWidget {
   final _appBarTitle;
-  final TextEditingController _txt1 = TextEditingController(text: 'sup');
-  final TextEditingController _txt2 = TextEditingController(text: 'sup');
+  final TextEditingController _txt1 = TextEditingController(text: '');
+  final TextEditingController _txt2 = TextEditingController(text: '');
 
   ChangeVendorSettingPage(this._appBarTitle);
   @override
@@ -163,9 +173,15 @@ class ChangeVendorSettingPage extends StatelessWidget {
           title: Text(_appBarTitle),
           actions: <Widget>[
             FlatButton(
-              child: Text('SAVE',style: TextStyle(color: Colors.white),),
+              child: Text(
+                'SAVE',
+                style: TextStyle(color: Colors.white),
+              ),
               onPressed: () {
-                dynamic returnVal = _appBarTitle.toString().toLowerCase() == 'location' ? {'latitude':_txt1.text, 'longitude':_txt2.text} : _txt1.text;
+                dynamic returnVal =
+                    _appBarTitle.toString().toLowerCase() == 'location'
+                        ? {'latitude': _txt1.text, 'longitude': _txt2.text}
+                        : _txt1.text;
                 Navigator.of(context).pop(returnVal);
               },
             )
@@ -177,7 +193,7 @@ class ChangeVendorSettingPage extends StatelessWidget {
               title: _appBarTitle.toString().toLowerCase() ==
                       'business description'
                   ? TextField(
-                    controller: _txt1,
+                      controller: _txt1,
                       autofocus: true,
                       maxLines: 10,
                       decoration: InputDecoration(labelText: 'Enter a value'),
@@ -200,7 +216,7 @@ class ChangeVendorSettingPage extends StatelessWidget {
                           ],
                         )
                       : TextField(
-                        controller: _txt1,
+                          controller: _txt1,
                           autofocus: true,
                           decoration:
                               InputDecoration(labelText: 'Enter a value'),
