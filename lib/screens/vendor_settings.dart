@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating/flutter_rating.dart';
 import 'package:suara/screens/payment_topup.dart';
 
-
-
 class VendorSettingsScreen extends StatefulWidget {
+  final double _latitude;
+  final double _longitude;
+
+  VendorSettingsScreen(this._latitude, this._longitude);
+
   @override
   State<StatefulWidget> createState() => VendorSettingsScreenState();
 }
 
-class VendorSettingsScreenState extends State<VendorSettingsScreen>{
+class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
   var _ratingVal = 0.0;
+  //var c= widget._latitude;
+  //var _latTxtController = TextEditingController(text: widget._latitude.toString());
+  //var _longTxtController = TextEditingController(text: widget._longitude.toString());
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +31,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen>{
           inactiveThumbColor: Colors.grey,
           onChanged: (val) {
             _scaffoldKey.currentState.showSnackBar(SnackBar(
-                content: Text(val?'Online' : 'Offline'),
-              ));
+              content: Text(val ? 'Online' : 'Offline'),
+            ));
           },
         ),
         actions: <Widget>[
@@ -38,8 +44,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen>{
                 tooltip: 'Buy credit',
                 onPressed: () {
                   var route = MaterialPageRoute(
-                    builder: (BuildContext context)=>PaymentTopUpScreen()
-                  );
+                      builder: (BuildContext context) => PaymentTopUpScreen());
 
                   Navigator.of(context).push(route);
                 },
@@ -48,32 +53,54 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen>{
           )
         ],
       ),
-      body: Column(
+      body: ListView(
         children: <Widget>[
-          CircleAvatar(
-            radius: 50.0,
+          ListTile(
+            title: Text('Business Name'),
+            subtitle: Text('Untitled'),
           ),
-          Text('Upload Picture'),
-          Text('Business Name'),
-          Text('Business Description'),
-          Text('Facebook Page URL'),
-          Text('Location 1'),
-          TextField(),
-          Text('Location 2'),
-          TextField(),
-          Text('Ratings'),
-          StarRating(
-            rating: _ratingVal,
-            size: 50.0,
-            onRatingChanged: (val){
-              setState(() {
-                              _ratingVal = val;
-                            });
-            },
+          ListTile(
+            title: Text('Business Description'),
+            subtitle: Text('Untitled'),
           ),
-          RaisedButton(
-            onPressed: (){},
-            child: Text('Save'),
+          ListTile(
+            title: Text('FB Page URL'),
+            subtitle: Text('Untitled'),
+          ),
+          ListTile(
+            title: Text('Locations'),
+            subtitle: Text('asd'),
+          ),
+          ListTile(
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('Ratings'),
+                StarRating(
+                    starCount: 5,
+                    size: 50.0,
+                    rating: _ratingVal,
+                    color: Colors.deepOrangeAccent,
+                    onRatingChanged: (val) {
+                      setState(() {
+                        _ratingVal = val;
+                      });
+                    }),
+              ],
+            ),
+          ),
+          /*ListTile(
+            title: Flex(
+              direction: Axis.vertical,
+              children: <Widget>[Container()],
+            ),
+          ),*/
+          ListTile(
+            title: RaisedButton(
+              color: Colors.blue,
+              onPressed: () {},
+              child: Text('Save'),
+            ),
           )
         ],
       ),
