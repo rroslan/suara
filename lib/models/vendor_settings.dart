@@ -6,14 +6,14 @@ class VendorSettings{
   dynamic location;
   String ratings;
 
-  toJson(String businessName, String businessDesc, String fbURL,String latitude, String longitude){
+  toJson(){
     return{
       'businessName':businessName,
       'businessDesc':businessDesc,
       'fbURL':fbURL,
       'location':{
-        'latitude':latitude,
-        'longitude':longitude
+        'latitude':location['latitude'],
+        'longitude':location['longitude']
       }
     };
   }
