@@ -4,6 +4,8 @@ class VendorSettings{
   String businessDesc;
   String fbURL;
   dynamic location;
+  String whatsappNo;
+  String phoneNo;
 
   toJson(){
     return{
@@ -14,7 +16,9 @@ class VendorSettings{
       'location':{
         'latitude':location['latitude'],
         'longitude':location['longitude']
-      }
+      },
+      'whatsappNo':whatsappNo,
+      'phoneNo':phoneNo
     };
   }
   VendorSettings();
@@ -25,5 +29,7 @@ class VendorSettings{
     businessDesc = f['businessDesc'];
     fbURL = f['fbURL'];
     location = f['location'];
+    whatsappNo = f['whatsappNo'];
+    phoneNo = f['phoneNo'];
   }
 }

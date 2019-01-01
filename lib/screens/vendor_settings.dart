@@ -144,6 +144,34 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
             },
           ),
           ListTile(
+            title: Text('Whatsapp Number'),
+            subtitle: Text(_vendorSettings.whatsappNo.isNotEmpty
+                ? _vendorSettings.whatsappNo
+                : 'Unspecified'),
+            onTap: () async {
+              var whatsappNo = await navigateToSettingsPage('Whatsapp No', _vendorSettings.whatsappNo.isNotEmpty ? _vendorSettings.whatsappNo : '');
+              if (whatsappNo != null) {
+                setState(() {
+                  _vendorSettings.whatsappNo = whatsappNo;
+                });
+              }
+            },
+          ),
+          ListTile(
+            title: Text('Phone Number'),
+            subtitle: Text(_vendorSettings.phoneNo.isNotEmpty
+                ? _vendorSettings.phoneNo
+                : 'Unspecified'),
+            onTap: () async {
+              var phoneNo = await navigateToSettingsPage('Phone No', _vendorSettings.phoneNo.isNotEmpty ? _vendorSettings.phoneNo : '');
+              if (phoneNo != null) {
+                setState(() {
+                  _vendorSettings.phoneNo = phoneNo;
+                });
+              }
+            },
+          ),
+          ListTile(
             title: RaisedButton(
               color: Colors.blue,
               onPressed: () {
