@@ -27,9 +27,9 @@ class PhoneLoginScreen extends StatelessWidget {
               ),
               RaisedButton(
                 onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
+                  /*Navigator.of(context).push(MaterialPageRoute(
                       builder: (BuildContext context) =>
-                          VendorSettingsScreen(_latitude,_longitude)));
+                          VendorSettingsScreen(_latitude,_longitude)));*/
                   /*var min = 10000;
                   var max = 90000;
                   var generatedCode = min + (_random.nextInt(max-min));
