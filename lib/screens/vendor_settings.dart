@@ -8,8 +8,9 @@ import 'package:suara/screens/payment_topup.dart';
 class VendorSettingsScreen extends StatefulWidget {
   final double _latitude;
   final double _longitude;
+  final String _loggedInUserId;
 
-  VendorSettingsScreen(this._latitude, this._longitude);
+  VendorSettingsScreen(this._latitude, this._longitude, this._loggedInUserId);
 
   @override
   State<StatefulWidget> createState() => VendorSettingsScreenState();
@@ -23,10 +24,32 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   //var _latTxtController = TextEditingController(text: widget._latitude.toString());
   //var _longTxtController = TextEditingController(text: widget._longitude.toString());
 
-  Future<dynamic> navigateToSettingsPage(String title) {
+  Future<dynamic> navigateToSettingsPage(String title,initialValue) {
     return Navigator.of(context).push(MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (BuildContext context) => ChangeVendorSettingPage(title)));
+        builder: (BuildContext context) => ChangeVendorSettingPage(title,initialValue)));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getLoggedInUserDetails();
+  }
+
+  void getLoggedInUserDetails() {
+    Firestore.instance
+        .collection('vendorsettings')
+        .where('uid', isEqualTo: 'DHgRhJTkppOi2AL16oCtsbhpUaE2')
+        .snapshots()
+        .listen((data) {
+      if (data.documents.length > 0) {
+        print(data.documents[0]['businessDesc']);
+        var result = VendorSettings.fromJson(data.documents[0]);
+        setState(() {
+          _vendorSettings = result;
+        });
+      }
+    });
   }
 
   @override
@@ -67,9 +90,11 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
         children: <Widget>[
           ListTile(
             title: Text('Business Name'),
-            subtitle: Text(_vendorSettings.businessName != null ? _vendorSettings.businessName : 'Unspecified'),
+            subtitle: Text(_vendorSettings.businessName != null
+                ? _vendorSettings.businessName
+                : 'Unspecified'),
             onTap: () async {
-              var businessName = await navigateToSettingsPage('Business Name');
+              var businessName = await navigateToSettingsPage('Business Name',_vendorSettings.businessName != null ? _vendorSettings.businessName : '');
               if (businessName != null) {
                 setState(() {
                   _vendorSettings.businessName = businessName;
@@ -79,10 +104,12 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           ),
           ListTile(
             title: Text('Business Description'),
-            subtitle: Text(_vendorSettings.businessDesc != null ? _vendorSettings.businessDesc : 'Unspecified'),
+            subtitle: Text(_vendorSettings.businessDesc != null
+                ? _vendorSettings.businessDesc
+                : 'Unspecified'),
             onTap: () async {
               var businessDesc =
-                  await navigateToSettingsPage('Business Description');
+                  await navigateToSettingsPage('Business Description',_vendorSettings.businessDesc != null ? _vendorSettings.businessDesc : '');
               if (businessDesc != null) {
                 setState(() {
                   _vendorSettings.businessDesc = businessDesc;
@@ -92,9 +119,11 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           ),
           ListTile(
             title: Text('FB Page URL'),
-            subtitle: Text(_vendorSettings.fbURL != null ? _vendorSettings.fbURL : 'Unspecified'),
+            subtitle: Text(_vendorSettings.fbURL != null
+                ? _vendorSettings.fbURL
+                : 'Unspecified'),
             onTap: () async {
-              var fbURL = await navigateToSettingsPage('FB Page URL');
+              var fbURL = await navigateToSettingsPage('FB Page URL',_vendorSettings.fbURL != null ? _vendorSettings.fbURL : '');
               if (fbURL != null) {
                 setState(() {
                   _vendorSettings.fbURL = fbURL;
@@ -104,10 +133,11 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           ),
           ListTile(
             title: Text('Location'),
-            subtitle: Text(
-                _vendorSettings.location != null ? 'Lat: ${_vendorSettings.location['latitude']}  |  Long: ${_vendorSettings.location['longitude']}' : 'Lat: 0.0000  |  Long: 0.0000'),
+            subtitle: Text(_vendorSettings.location != null
+                ? 'Lat: ${_vendorSettings.location['latitude']}  |  Long: ${_vendorSettings.location['longitude']}'
+                : 'Lat: 0.0000  |  Long: 0.0000'),
             onTap: () async {
-              var location = await navigateToSettingsPage('Location');
+              var location = await navigateToSettingsPage('Location', _vendorSettings.location != null ? '${_vendorSettings.location['latitude']}|${_vendorSettings.location['longitude']}' : null);
               if (location != null) {
                 setState(() {
                   _vendorSettings.location = location;
@@ -151,7 +181,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                   });
                 });
               },
-              child: Text('Save'),
+              child: Text('Save',style: TextStyle(color: Colors.white),),
             ),
           )
         ],
@@ -161,13 +191,18 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
 }
 
 class ChangeVendorSettingPage extends StatelessWidget {
-  final _appBarTitle;
+  final String _appBarTitle;
+  final String _initialValue;
   final TextEditingController _txt1 = TextEditingController(text: '');
   final TextEditingController _txt2 = TextEditingController(text: '');
 
-  ChangeVendorSettingPage(this._appBarTitle);
+  ChangeVendorSettingPage(this._appBarTitle, this._initialValue);
+
   @override
   Widget build(BuildContext context) {
+    _txt1.text = _appBarTitle.toString() == 'Location'? _initialValue != null ? _initialValue.split('|')[0] : '' : _initialValue;
+    _txt2.text = _appBarTitle.toString() == 'Location'? _initialValue != null ? _initialValue.split('|')[1] : '' : null;
+
     return Scaffold(
         appBar: AppBar(
           title: Text(_appBarTitle),
@@ -179,7 +214,7 @@ class ChangeVendorSettingPage extends StatelessWidget {
               ),
               onPressed: () {
                 dynamic returnVal =
-                    _appBarTitle.toString().toLowerCase() == 'location'
+                    _appBarTitle.toLowerCase() == 'location'
                         ? {'latitude': _txt1.text, 'longitude': _txt2.text}
                         : _txt1.text;
                 Navigator.of(context).pop(returnVal);
@@ -190,7 +225,7 @@ class ChangeVendorSettingPage extends StatelessWidget {
         body: ListView(
           children: <Widget>[
             ListTile(
-              title: _appBarTitle.toString().toLowerCase() ==
+              title: _appBarTitle.toLowerCase() ==
                       'business description'
                   ? TextField(
                       controller: _txt1,
@@ -198,7 +233,7 @@ class ChangeVendorSettingPage extends StatelessWidget {
                       maxLines: 10,
                       decoration: InputDecoration(labelText: 'Enter a value'),
                     )
-                  : _appBarTitle.toString().toLowerCase() == 'location'
+                  : _appBarTitle.toLowerCase() == 'location'
                       ? Column(
                           children: <Widget>[
                             TextField(
