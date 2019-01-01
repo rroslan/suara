@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating/flutter_rating.dart';
 import 'package:suara/models/vendor_settings.dart';
 import 'package:suara/screens/payment_topup.dart';
 
@@ -18,7 +17,6 @@ class VendorSettingsScreen extends StatefulWidget {
 
 class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
-  var _ratingVal = 0.0;
   var _vendorSettings = new VendorSettings();
   //var c= widget._latitude;
   //var _latTxtController = TextEditingController(text: widget._latitude.toString());
@@ -144,24 +142,6 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                 });
               }
             },
-          ),
-          ListTile(
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('Ratings'),
-                StarRating(
-                    starCount: 5,
-                    size: 50.0,
-                    rating: _ratingVal,
-                    color: Colors.deepOrangeAccent,
-                    onRatingChanged: (val) {
-                      setState(() {
-                        _ratingVal = val;
-                      });
-                    }),
-              ],
-            ),
           ),
           ListTile(
             title: RaisedButton(

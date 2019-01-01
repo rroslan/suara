@@ -4,7 +4,6 @@ class VendorSettings{
   String businessDesc;
   String fbURL;
   dynamic location;
-  String ratings;
 
   toJson(){
     return{

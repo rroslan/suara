@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating/flutter_rating.dart';
 import 'package:suara/screens/payment_topup.dart';
 
 
@@ -24,10 +23,6 @@ class VendorDetailsScreen extends StatelessWidget {
           Text('Business Description'),
           Text('Facebook Page URL'),
           Text('Ratings'),
-          StarRating(
-            rating: 1.0,
-            size: 50.0,
-          )
         ],
       ),
     );
