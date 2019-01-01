@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:suara/models/vendor_settings.dart';
 import 'package:suara/screens/payment_topup.dart';
+import 'package:flutter_appavailability/flutter_appavailability.dart';
 
 class VendorSettingsScreen extends StatefulWidget {
   final double _latitude;
@@ -145,9 +146,9 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           ),
           ListTile(
             title: Text('Whatsapp Number'),
-            subtitle: Text(_vendorSettings.whatsappNo.isNotEmpty
+            subtitle: Text(_vendorSettings.whatsappNo != null ? _vendorSettings.whatsappNo.isNotEmpty
                 ? _vendorSettings.whatsappNo
-                : 'Unspecified'),
+                : 'Unspecified' : 'Unspecified'),
             onTap: () async {
               var whatsappNo = await navigateToSettingsPage('Whatsapp No', _vendorSettings.whatsappNo.isNotEmpty ? _vendorSettings.whatsappNo : '');
               if (whatsappNo != null) {
@@ -159,9 +160,9 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           ),
           ListTile(
             title: Text('Phone Number'),
-            subtitle: Text(_vendorSettings.phoneNo.isNotEmpty
+            subtitle: Text(_vendorSettings.phoneNo != null ? _vendorSettings.phoneNo.isNotEmpty
                 ? _vendorSettings.phoneNo
-                : 'Unspecified'),
+                : 'Unspecified' : 'Unspecified'),
             onTap: () async {
               var phoneNo = await navigateToSettingsPage('Phone No', _vendorSettings.phoneNo.isNotEmpty ? _vendorSettings.phoneNo : '');
               if (phoneNo != null) {
@@ -169,6 +170,18 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                   _vendorSettings.phoneNo = phoneNo;
                 });
               }
+            },
+          ),
+          ListTile(
+            title: Text('Open in Waze'),
+            onTap: () {
+              AppAvailability.checkAvailability('com.waze').then((appInfo){
+                AppAvailability.launchApp(appInfo['package_name']);
+              }).catchError((error){
+                _scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text(error),
+                ));
+              });
             },
           ),
           ListTile(
