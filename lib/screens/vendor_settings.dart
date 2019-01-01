@@ -175,8 +175,9 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           ListTile(
             title: Text('Open in Waze'),
             onTap: () {
+
               AppAvailability.checkAvailability('com.waze').then((appInfo){
-                AppAvailability.launchApp(appInfo['package_name']);
+                AppAvailability.launchApp('com.waze');
               }).catchError((error){
                 _scaffoldKey.currentState.showSnackBar(SnackBar(
                   content: Text(error),
