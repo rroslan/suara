@@ -190,7 +190,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   builder: (BuildContext context) => loggedInUser.isAnonymous ? PhoneLoginScreen(currentLocation["latitude"], currentLocation["longitude"]) : VendorSettingsScreen(currentLocation["latitude"], currentLocation["longitude"]));
 
               Navigator.of(context).push(route);*/
-              Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context)=>VendorSettingsScreen(currentLocation["latitude"], currentLocation["longitude"])));
+              print('${loggedInUser.uid}');
+              Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context)=>VendorSettingsScreen(currentLocation["latitude"], currentLocation["longitude"],loggedInUser.uid)));
             } : null,
           )
         ],
