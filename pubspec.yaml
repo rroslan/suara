@@ -26,6 +26,8 @@ dependencies:
   firebase_auth: ^0.6.6
   google_sign_in: ^3.2.4
   flutter_appavailability:
+  shared_preferences: ^0.4.3
+
 
 dev_dependencies:
   flutter_test:
