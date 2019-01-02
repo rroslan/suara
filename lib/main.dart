@@ -88,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
             contentPadding: EdgeInsets.all(10.0),
             actions: <Widget>[
               FlatButton(
-                child: Text('Cancel'),
+                child: Text('Ok'),
                 onPressed: () {
                   FirebaseAuth.instance.currentUser().then((user) {
                     if (user != null) {
@@ -119,7 +119,11 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _dbRef = FirebaseDatabase.instance.reference().child('AnonUsers');
-    verifyPhone();
+    FirebaseAuth.instance.currentUser().then((user){
+      if(user == null){
+        verifyPhone();
+      }
+    });
   }
 
   @override
