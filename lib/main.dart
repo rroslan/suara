@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:suara/common/common.dart';
 import 'package:suara/models/anon_user.dart';
 import 'package:suara/screens/phone_login.dart';
 import 'package:suara/screens/vendor_details.dart';
@@ -45,84 +46,81 @@ class _MyHomePageState extends State<MyHomePage> {
   String smsCode;
   String verificationId;
 
-  Future<void> verifyPhone()async{
-    final PhoneCodeSent smsCodeSent = (String veriId, [int forceCodeResend]){
+  Future<void> verifyPhone() async {
+    final PhoneCodeSent smsCodeSent = (String veriId, [int forceCodeResend]) {
       this.verificationId = veriId;
-      smsCodeDialog(context).then((value){
+      smsCodeDialog(context).then((value) {
         print('signed in');
       });
     };
 
-    final PhoneVerificationCompleted verifiedSuccess = (FirebaseUser user){
+    final PhoneVerificationCompleted verifiedSuccess = (FirebaseUser user) {
       print('verified');
     };
 
-    final PhoneVerificationFailed verificationFailed = (AuthException ex){
+    final PhoneVerificationFailed verificationFailed = (AuthException ex) {
       print(ex.message);
     };
 
     await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: this.phoneNo,
-      codeAutoRetrievalTimeout: (veriId){
-        verificationId = veriId;
-      },
-      codeSent: smsCodeSent,
-      timeout: const Duration(seconds: 5),
-      verificationCompleted: verifiedSuccess,
-      verificationFailed: verificationFailed
-    );
+        phoneNumber: this.phoneNo,
+        codeAutoRetrievalTimeout: (veriId) {
+          verificationId = veriId;
+        },
+        codeSent: smsCodeSent,
+        timeout: const Duration(seconds: 5),
+        verificationCompleted: verifiedSuccess,
+        verificationFailed: verificationFailed);
   }
 
-  Future<bool> smsCodeDialog(BuildContext context){
+  Future<bool> smsCodeDialog(BuildContext context) {
     return showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context){
-        return new AlertDialog(
-          title: Text('Enter SMS code'),
-          content: TextField(
-            onChanged: (value){
-              this.smsCode = value;
-            },
-          ),
-          contentPadding: EdgeInsets.all(10.0),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('Cancel'),
-              onPressed: (){
-                FirebaseAuth.instance.currentUser().then((user){
-                  if(user!=null){
-                    Navigator.of(context).pop();
-                  }else{
-                    Navigator.of(context).pop();
-                    signIn();
-                  }
-                });
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return new AlertDialog(
+            title: Text('Enter SMS code'),
+            content: TextField(
+              onChanged: (value) {
+                this.smsCode = value;
               },
-            )
-          ],
-        );
-      }
-    );
+            ),
+            contentPadding: EdgeInsets.all(10.0),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Cancel'),
+                onPressed: () {
+                  FirebaseAuth.instance.currentUser().then((user) {
+                    if (user != null) {
+                      Navigator.of(context).pop();
+                    } else {
+                      Navigator.of(context).pop();
+                      signIn();
+                    }
+                  });
+                },
+              )
+            ],
+          );
+        });
   }
 
-  signIn(){
-    FirebaseAuth.instance.signInWithPhoneNumber(
-      verificationId: this.verificationId,
-      smsCode: this.smsCode
-    ).then((user){
-
-    }).catchError((error){
+  signIn() {
+    FirebaseAuth.instance
+        .signInWithPhoneNumber(
+            verificationId: this.verificationId, smsCode: this.smsCode)
+        .then((user) {})
+        .catchError((error) {
       print(error);
     });
   }
 
   @override
   void initState() {
-      super.initState();
-      _dbRef = FirebaseDatabase.instance.reference().child('AnonUsers');
-      verifyPhone();
-    }
+    super.initState();
+    _dbRef = FirebaseDatabase.instance.reference().child('AnonUsers');
+    verifyPhone();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,29 +152,40 @@ class _MyHomePageState extends State<MyHomePage> {
           tooltip: 'Get locations',
           onPressed: () async {
             //log the user in anonymously
-            FirebaseAuth.instance.signInAnonymously().then((FirebaseUser user){
+            FirebaseAuth.instance
+                .signInAnonymously()
+                .then((FirebaseUser user) async {
               setState(() {
-                              loggedInUser = user;
-                            });
+                loggedInUser = user;
+              });
 
-              //when login is success, we are getting the location details
-              try{
+              //getting the location
+              currentLocation = await location.getLocation();
+
+              await setLocation(
+                  currentLocation['latitude'], currentLocation['longitude']);
+              print('location set in shared pref');
+            });
+
+            //when login is success, we are getting the location details
+            /*try{
                 location.getLocation().then((val){
                   currentLocation = val;
                   var loggedInAnonUser = AnonymouseUser().toJson(user.uid, currentLocation["latitude"], currentLocation["longitude"]);
 
                   //finally, pushing the values to the cloud firestore
-                  _dbRef.push().set(loggedInAnonUser);
-                  /*Firestore.instance.collection('users').document().setData(loggedInAnonUser).then((e){
+                  _dbRef.push().set(loggedInAnonUser);*/
+            /*Firestore.instance.collection('users').document().setData(loggedInAnonUser).then((e){
                     print('done');
                   }).catchError((e){print(e);});*/
-                });
+            /*});
               }catch(e){
                 print(e);
-              }
-            }).catchError((e){
+              }*/
+
+            /*}).catchError((e) {
               print(e);
-            });
+            });*/
           },
         ),
         actions: <Widget>[
@@ -185,14 +194,20 @@ class _MyHomePageState extends State<MyHomePage> {
               'Vendor Settings',
               style: TextStyle(color: Colors.white),
             ),
-            onPressed: loggedInUser != null ? () {
-              /*var route = MaterialPageRoute(
+            onPressed: loggedInUser != null
+                ? () {
+                    /*var route = MaterialPageRoute(
                   builder: (BuildContext context) => loggedInUser.isAnonymous ? PhoneLoginScreen(currentLocation["latitude"], currentLocation["longitude"]) : VendorSettingsScreen(currentLocation["latitude"], currentLocation["longitude"]));
 
               Navigator.of(context).push(route);*/
-              print('${loggedInUser.uid}');
-              Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context)=>VendorSettingsScreen(currentLocation["latitude"], currentLocation["longitude"],loggedInUser.uid)));
-            } : null,
+                    print('${loggedInUser.uid}');
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (BuildContext context) => VendorSettingsScreen(
+                            currentLocation["latitude"],
+                            currentLocation["longitude"],
+                            loggedInUser.uid)));
+                  }
+                : null,
           )
         ],
       ),
