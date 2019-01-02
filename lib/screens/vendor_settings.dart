@@ -38,7 +38,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   void getLoggedInUserDetails() {
     Firestore.instance
         .collection('vendorsettings')
-        .where('uid', isEqualTo: 'DHgRhJTkppOi2AL16oCtsbhpUaE2')
+        .where('uid', isEqualTo: widget._loggedInUserId)
         .snapshots()
         .listen((data) {
       if (data.documents.length > 0) {
