@@ -119,9 +119,13 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _dbRef = FirebaseDatabase.instance.reference().child('AnonUsers');
-    FirebaseAuth.instance.currentUser().then((user){
-      if(user == null){
+    FirebaseAuth.instance.currentUser().then((user) {
+      if (user == null) {
         verifyPhone();
+      } else {
+        setState(() {
+          loggedInUser = user;
+        });
       }
     });
   }
@@ -155,21 +159,12 @@ class _MyHomePageState extends State<MyHomePage> {
           icon: Icon(Icons.pin_drop),
           tooltip: 'Get locations',
           onPressed: () async {
-            //log the user in anonymously
-            FirebaseAuth.instance
-                .signInAnonymously()
-                .then((FirebaseUser user) async {
-              setState(() {
-                loggedInUser = user;
-              });
+            //getting the location
+            currentLocation = await location.getLocation();
 
-              //getting the location
-              currentLocation = await location.getLocation();
-
-              await setLocation(
-                  currentLocation['latitude'], currentLocation['longitude']);
-              print('location set in shared pref');
-            });
+            await setLocation(
+                currentLocation['latitude'], currentLocation['longitude']);
+            print('location set in shared pref');
 
             //when login is success, we are getting the location details
             /*try{
@@ -198,20 +193,18 @@ class _MyHomePageState extends State<MyHomePage> {
               'Vendor Settings',
               style: TextStyle(color: Colors.white),
             ),
-            onPressed: loggedInUser != null
-                ? () {
-                    /*var route = MaterialPageRoute(
+            onPressed: () {
+              /*var route = MaterialPageRoute(
                   builder: (BuildContext context) => loggedInUser.isAnonymous ? PhoneLoginScreen(currentLocation["latitude"], currentLocation["longitude"]) : VendorSettingsScreen(currentLocation["latitude"], currentLocation["longitude"]));
 
               Navigator.of(context).push(route);*/
-                    print('${loggedInUser.uid}');
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (BuildContext context) => VendorSettingsScreen(
-                            currentLocation["latitude"],
-                            currentLocation["longitude"],
-                            loggedInUser.uid)));
-                  }
-                : null,
+              print('${loggedInUser.uid}');
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) => VendorSettingsScreen(
+                      currentLocation["latitude"],
+                      currentLocation["longitude"],
+                      loggedInUser.uid)));
+            },
           )
         ],
       ),
