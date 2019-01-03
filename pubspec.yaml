@@ -27,6 +27,7 @@ dependencies:
   google_sign_in: ^3.2.4
   flutter_appavailability:
   shared_preferences: ^0.4.3
+  flutter_geofire: ^0.0.4
 
 
 dev_dependencies:
