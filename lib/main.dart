@@ -81,6 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
           return new AlertDialog(
             title: Text('Enter SMS code'),
             content: TextField(
+              keyboardType: TextInputType.number,
               onChanged: (value) {
                 this.smsCode = value;
               },
@@ -105,6 +106,32 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
+  Future<void> phoneNumberRequestDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return new AlertDialog(
+            title: Text('Enter phone number'),
+            content: TextField(
+              keyboardType: TextInputType.phone,
+              onChanged: (value) {
+                this.phoneNo = value;
+              },
+            ),
+            contentPadding: EdgeInsets.all(10.0),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Ok'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        });
+  }
+
   signIn() {
     FirebaseAuth.instance
         .signInWithPhoneNumber(
@@ -121,7 +148,9 @@ class _MyHomePageState extends State<MyHomePage> {
     _dbRef = FirebaseDatabase.instance.reference().child('AnonUsers');
     FirebaseAuth.instance.currentUser().then((user) {
       if (user == null) {
-        verifyPhone();
+        phoneNumberRequestDialog(context).then((value){
+          verifyPhone();
+        });
       } else {
         setState(() {
           loggedInUser = user;
