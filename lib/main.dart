@@ -19,7 +19,16 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: /*MyHomePage(title: 'Flutter Demo Home Page')*/ FutureBuilder(
+        future: FirebaseAuth.instance.currentUser(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return MyHomePage(title: 'Flutter Demo Home Page');
+          } else {
+            return LoginPage();
+          }
+        },
+      ),
     );
   }
 }
@@ -33,6 +42,49 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+class LoginPage extends StatelessWidget {
+  void initiateGoogleLogin(BuildContext context) {
+    GoogleSignIn _googleSignIn = GoogleSignIn();
+
+    _googleSignIn.signIn().then((result) {
+      result.authentication.then((googleKey) {
+        FirebaseAuth.instance
+            .signInWithGoogle(
+                idToken: googleKey.idToken, accessToken: googleKey.accessToken)
+            .then((signedInUser) {
+          //navigateToWelcomePage(context, WelcomeScreen());
+          print('signed in');
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => MyHomePage()));
+        });
+      }).catchError((error) {
+        /*scaffoldKey.currentState
+          .showSnackBar(errorSnackBar(scaffoldKey, error.message));*/
+        print(error.message);
+      });
+    }).catchError((error) {
+      /*scaffoldKey.currentState
+        .showSnackBar(errorSnackBar(scaffoldKey, error.message));*/
+      print(error.message);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: RaisedButton(
+          color: Colors.red.shade700,
+          child: Text('Login with Google',style: TextStyle(color: Colors.white),),
+          onPressed: () {
+            initiateGoogleLogin(context);
+          },
+        ),
+      ),
+    );
+  }
+}
+
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
   var currentLocation = <String, double>{};
@@ -42,11 +94,11 @@ class _MyHomePageState extends State<MyHomePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   FirebaseUser loggedInUser;
 
-  String phoneNo = '+94766674770';
+  /*String phoneNo = '+94766674770';
   String smsCode;
-  String verificationId;
+  String verificationId;*/
 
-  Future<void> verifyPhone() async {
+  /*Future<void> verifyPhone() async {
     final PhoneCodeSent smsCodeSent = (String veriId, [int forceCodeResend]) {
       this.verificationId = veriId;
       smsCodeDialog(context).then((value) {
@@ -71,9 +123,9 @@ class _MyHomePageState extends State<MyHomePage> {
         timeout: const Duration(seconds: 5),
         verificationCompleted: verifiedSuccess,
         verificationFailed: verificationFailed);
-  }
+  }*/
 
-  Future<bool> smsCodeDialog(BuildContext context) {
+  /*Future<bool> smsCodeDialog(BuildContext context) {
     return showDialog(
         context: context,
         barrierDismissible: false,
@@ -104,9 +156,9 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           );
         });
-  }
+  }*/
 
-  Future<void> phoneNumberRequestDialog(BuildContext context) {
+  /*Future<void> phoneNumberRequestDialog(BuildContext context) {
     return showDialog(
         context: context,
         barrierDismissible: false,
@@ -130,9 +182,9 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           );
         });
-  }
+  }*/
 
-  signIn() {
+  /*signIn() {
     FirebaseAuth.instance
         .signInWithPhoneNumber(
             verificationId: this.verificationId, smsCode: this.smsCode)
@@ -140,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
         .catchError((error) {
       print(error);
     });
-  }
+  }*/
 
   @override
   void initState() {
@@ -148,9 +200,9 @@ class _MyHomePageState extends State<MyHomePage> {
     _dbRef = FirebaseDatabase.instance.reference().child('AnonUsers');
     FirebaseAuth.instance.currentUser().then((user) {
       if (user == null) {
-        phoneNumberRequestDialog(context).then((value){
+        /*phoneNumberRequestDialog(context).then((value){
           verifyPhone();
-        });
+        });*/
       } else {
         setState(() {
           loggedInUser = user;
