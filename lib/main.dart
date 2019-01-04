@@ -211,9 +211,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (tappedIndex) {
@@ -246,6 +249,9 @@ class _MyHomePageState extends State<MyHomePage> {
             await setLocation(
                 currentLocation['latitude'], currentLocation['longitude']);
             print('location set in shared pref');
+            _scaffoldKey.currentState.showSnackBar(SnackBar(
+              content: Text('location obtained and copied'),
+            ));
 
             //when login is success, we are getting the location details
             /*try{
