@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:location/location.dart';
 import 'package:suara/models/vendor_settings.dart';
 import 'package:suara/screens/payment_topup.dart';
 import 'package:flutter_appavailability/flutter_appavailability.dart';
@@ -167,6 +168,18 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                 });
               }
             },
+            trailing: IconButton(
+              icon: Icon(Icons.pin_drop),
+              onPressed: () async {
+                var currentLocation = await Location().getLocation();
+                setState(() {
+                  _vendorSettings.location={
+                    'latitude':currentLocation['latitude'],
+                    'longitude':currentLocation['longitude']
+                  };
+                });
+              },
+            ),
           ),
           ListTile(
             title: Text('Whatsapp Number'),
