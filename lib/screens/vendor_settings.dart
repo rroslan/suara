@@ -244,6 +244,25 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
             },
           ),
           ListTile(
+            title: Text('Default Category'),
+            subtitle: Text(_vendorSettings.category == null
+                ? 'Unspecified'
+                : _vendorSettings.category.isEmpty
+                    ? 'Unspecified'
+                    : _vendorSettings.category),
+            onTap: () async {
+              var category = await Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) =>
+                      CategoriesScreen(_vendorSettings.category),
+                  fullscreenDialog: true));
+              if (category != null) {
+                setState(() {
+                  _vendorSettings.category = category;
+                });
+              }
+            },
+          ),
+          ListTile(
             title: RaisedButton(
               color: Colors.blue,
               onPressed: () {
@@ -308,46 +327,111 @@ class ChangeVendorSettingPage extends StatelessWidget {
             )
           ],
         ),
-        body: ListView(
-          children: <Widget>[
-            ListTile(
-              title: _appBarTitle.toLowerCase() == 'business description'
-                  ? TextField(
-                      controller: _txt1,
-                      autofocus: true,
-                      maxLines: 10,
-                      decoration: InputDecoration(labelText: 'Enter a value'),
-                    )
-                  : _appBarTitle.toLowerCase() == 'location'
-                      ? Column(
-                          children: <Widget>[
-                            TextField(
-                              controller: _txt1,
-                              autofocus: true,
-                              decoration:
-                                  InputDecoration(labelText: 'Enter latitude'),
-                            ),
-                            TextField(
-                              controller: _txt2,
-                              autofocus: true,
-                              decoration:
-                                  InputDecoration(labelText: 'Enter longitude'),
-                            )
-                          ],
-                        )
-                      : TextField(
-                          controller: _txt1,
-                          autofocus: true,
-                          decoration: InputDecoration(
-                              labelText: 'Enter a value',
-                              prefix:
-                                  _appBarTitle.toLowerCase() == 'fb page url'
-                                      ? Container(
-                                          child: Text('http://m.facebook.com/'))
-                                      : null),
-                        ),
-            )
-          ],
-        ));
+        body: ListView(children: <Widget>[
+          ListTile(
+            title: _appBarTitle.toLowerCase() == 'business description'
+                ? TextField(
+                    controller: _txt1,
+                    autofocus: true,
+                    maxLines: 10,
+                    decoration: InputDecoration(labelText: 'Enter a value'),
+                  )
+                : _appBarTitle.toLowerCase() == 'location'
+                    ? Column(
+                        children: <Widget>[
+                          TextField(
+                            controller: _txt1,
+                            autofocus: true,
+                            decoration:
+                                InputDecoration(labelText: 'Enter latitude'),
+                          ),
+                          TextField(
+                            controller: _txt2,
+                            autofocus: true,
+                            decoration:
+                                InputDecoration(labelText: 'Enter longitude'),
+                          )
+                        ],
+                      )
+                    : TextField(
+                        controller: _txt1,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                            labelText: 'Enter a value',
+                            prefix: _appBarTitle.toLowerCase() == 'fb page url'
+                                ? Container(
+                                    child: Text('http://m.facebook.com/'))
+                                : null),
+                      ),
+          )
+        ]));
+  }
+}
+
+class CategoriesScreen extends StatefulWidget {
+  final String _initialValue;
+
+  CategoriesScreen(this._initialValue);
+
+  @override
+  State<StatefulWidget> createState() => CategoriesScreenState();
+}
+
+class CategoriesScreenState extends State<CategoriesScreen> {
+  final categoriesList = <String>[
+    'Delivery',
+    'Transport',
+    'Service',
+    'Sell',
+    'Rent'
+  ];
+
+  String _selectedValue = '';
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      _selectedValue = widget._initialValue == null
+          ? categoriesList[0]
+          : widget._initialValue.isEmpty
+              ? categoriesList[0]
+              : widget._initialValue;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Choose a category'),
+        actions: <Widget>[
+          FlatButton(
+            child: Text(
+              'SAVE',
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop(_selectedValue);
+            },
+          )
+        ],
+      ),
+      body: ListView(
+        children: categoriesList
+            .map((cat) => RadioListTile(
+                  groupValue: _selectedValue,
+                  title: Text(cat),
+                  value: cat,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedValue = value;
+                    });
+                    print(value);
+                  },
+                ))
+            .toList(),
+      ),
+    );
   }
 }
