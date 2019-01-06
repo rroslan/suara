@@ -25,7 +25,6 @@ dependencies:
   firebase_database: ^1.0.5
   firebase_auth: ^0.6.6
   google_sign_in: ^3.2.4
-  flutter_appavailability:
   shared_preferences: ^0.4.3
   flutter_geofire: ^0.0.4
 
