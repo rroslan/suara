@@ -6,6 +6,7 @@ class VendorSettings{
   dynamic location;
   String whatsappNo;
   String phoneNo;
+  String category;
 
   toJson(){
     return{
@@ -18,7 +19,8 @@ class VendorSettings{
         'longitude':location['longitude']
       },
       'whatsappNo':whatsappNo,
-      'phoneNo':phoneNo
+      'phoneNo':phoneNo,
+      'category':category
     };
   }
   VendorSettings();
@@ -31,5 +33,6 @@ class VendorSettings{
     location = f['location'];
     whatsappNo = f['whatsappNo'];
     phoneNo = f['phoneNo'];
+    category = f['category'];
   }
 }
