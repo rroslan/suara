@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:suara/common/common.dart';
 import 'package:suara/models/anon_user.dart';
 import 'package:suara/screens/phone_login.dart';
@@ -75,7 +76,10 @@ class LoginPage extends StatelessWidget {
       body: Center(
         child: RaisedButton(
           color: Colors.red.shade700,
-          child: Text('Login with Google',style: TextStyle(color: Colors.white),),
+          child: Text(
+            'Login with Google',
+            style: TextStyle(color: Colors.white),
+          ),
           onPressed: () {
             initiateGoogleLogin(context);
           },
@@ -245,7 +249,9 @@ class _MyHomePageState extends State<MyHomePage> {
           onPressed: () async {
             //getting the location
             currentLocation = await location.getLocation();
-
+            Clipboard.setData(ClipboardData(
+                text:
+                    'Lat: ${currentLocation['latitude']} | Long: ${currentLocation['longitude']}'));
             await setLocation(
                 currentLocation['latitude'], currentLocation['longitude']);
             print('location set in shared pref');

@@ -182,6 +182,10 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
               icon: Icon(Icons.pin_drop),
               onPressed: () async {
                 var currentLocation = await Location().getLocation();
+                Clipboard.setData(ClipboardData(
+                    text:
+                        'Lat: ${currentLocation['latitude']} | Long: ${currentLocation['longitude']}'));
+
                 setState(() {
                   _vendorSettings.location = {
                     'latitude': currentLocation['latitude'],
