@@ -201,8 +201,10 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
             onTap: () async {
               var whatsappNo = await navigateToSettingsPage(
                   'Whatsapp No',
-                  _vendorSettings.whatsappNo.isNotEmpty
-                      ? _vendorSettings.whatsappNo
+                  _vendorSettings.whatsappNo != null
+                      ? _vendorSettings.whatsappNo.isNotEmpty
+                          ? _vendorSettings.whatsappNo
+                          : ''
                       : '');
               if (whatsappNo != null) {
                 setState(() {
@@ -221,8 +223,10 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
             onTap: () async {
               var phoneNo = await navigateToSettingsPage(
                   'Phone No',
-                  _vendorSettings.phoneNo.isNotEmpty
-                      ? _vendorSettings.phoneNo
+                  _vendorSettings.phoneNo != null
+                      ? _vendorSettings.phoneNo.isNotEmpty
+                          ? _vendorSettings.phoneNo
+                          : ''
                       : '');
               if (phoneNo != null) {
                 setState(() {
@@ -334,8 +338,13 @@ class ChangeVendorSettingPage extends StatelessWidget {
                       : TextField(
                           controller: _txt1,
                           autofocus: true,
-                          decoration:
-                              InputDecoration(labelText: 'Enter a value'),
+                          decoration: InputDecoration(
+                              labelText: 'Enter a value',
+                              prefix:
+                                  _appBarTitle.toLowerCase() == 'fb page url'
+                                      ? Container(
+                                          child: Text('http://m.facebook.com/'))
+                                      : null),
                         ),
             )
           ],
