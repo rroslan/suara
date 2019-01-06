@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:location/location.dart';
 import 'package:suara/models/vendor_settings.dart';
 import 'package:suara/screens/payment_topup.dart';
-import 'package:flutter_appavailability/flutter_appavailability.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 
 class VendorSettingsScreen extends StatefulWidget {
@@ -19,17 +19,27 @@ class VendorSettingsScreen extends StatefulWidget {
 }
 
 class VendorSettingsScreenState extends State<VendorSettingsScreen> {
+  static const platform = const MethodChannel('saura.biz/deeplinks');
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
   var _vendorSettings = new VendorSettings();
-  //var c= widget._latitude;
-  //var _latTxtController = TextEditingController(text: widget._latitude.toString());
-  //var _longTxtController = TextEditingController(text: widget._longitude.toString());
 
   Future<dynamic> navigateToSettingsPage(String title, initialValue) {
     return Navigator.of(context).push(MaterialPageRoute(
         fullscreenDialog: true,
         builder: (BuildContext context) =>
             ChangeVendorSettingPage(title, initialValue)));
+  }
+
+  Future<dynamic> openWazeLink() async {
+    try {
+      var result = await platform.invokeMethod('openWazeClientApp', {
+        'latitude': '${_vendorSettings.location['latitude']}',
+        'longitude': '${_vendorSettings.location['longitude']}'
+      });
+      print(result);
+    } catch (error) {
+      print(error);
+    }
   }
 
   @override
@@ -173,9 +183,9 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
               onPressed: () async {
                 var currentLocation = await Location().getLocation();
                 setState(() {
-                  _vendorSettings.location={
-                    'latitude':currentLocation['latitude'],
-                    'longitude':currentLocation['longitude']
+                  _vendorSettings.location = {
+                    'latitude': currentLocation['latitude'],
+                    'longitude': currentLocation['longitude']
                   };
                 });
               },
@@ -224,12 +234,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           ListTile(
             title: Text('Open in Waze'),
             onTap: () {
-              AppAvailability.checkAvailability('com.waze').then((appInfo) {
-                AppAvailability.launchApp('com.waze');
-              }).catchError((error) {
-                _scaffoldKey.currentState.showSnackBar(SnackBar(
-                  content: Text(error),
-                ));
+              openWazeLink().then((result) {
+                print(result);
               });
             },
           ),
