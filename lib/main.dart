@@ -229,7 +229,7 @@ class _MyHomePageState extends State<MyHomePage> {
           BottomNavigationBarItem(
               icon: Icon(Icons.access_time), title: Text('Delivery')),
           BottomNavigationBarItem(
-              icon: Icon(Icons.access_time), title: Text('Transport')),
+              icon: Icon(Icons.access_time), title: Text('Learn')),
           BottomNavigationBarItem(
               icon: Icon(Icons.access_time), title: Text('Service')),
           BottomNavigationBarItem(

@@ -380,7 +380,7 @@ class CategoriesScreen extends StatefulWidget {
 class CategoriesScreenState extends State<CategoriesScreen> {
   final categoriesList = <String>[
     'Delivery',
-    'Transport',
+    'Learn',
     'Service',
     'Sell',
     'Rent'
