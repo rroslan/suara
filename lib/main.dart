@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:suara/common/common.dart';
 import 'package:suara/models/anon_user.dart';
+import 'package:suara/models/vendors.dart';
 import 'package:suara/screens/phone_login.dart';
 import 'package:suara/screens/vendor_details.dart';
 import 'package:location/location.dart';
@@ -9,6 +10,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:suara/screens/vendor_settings.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 
 void main() => runApp(MyApp());
 
@@ -53,19 +55,14 @@ class LoginPage extends StatelessWidget {
             .signInWithGoogle(
                 idToken: googleKey.idToken, accessToken: googleKey.accessToken)
             .then((signedInUser) {
-          //navigateToWelcomePage(context, WelcomeScreen());
           print('signed in');
           Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => MyHomePage()));
         });
       }).catchError((error) {
-        /*scaffoldKey.currentState
-          .showSnackBar(errorSnackBar(scaffoldKey, error.message));*/
         print(error.message);
       });
     }).catchError((error) {
-      /*scaffoldKey.currentState
-        .showSnackBar(errorSnackBar(scaffoldKey, error.message));*/
       print(error.message);
     });
   }
@@ -97,106 +94,23 @@ class _MyHomePageState extends State<MyHomePage> {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   FirebaseUser loggedInUser;
+  var businessDetails = <Vendors>[
+  
+  ];
 
-  /*String phoneNo = '+94766674770';
-  String smsCode;
-  String verificationId;*/
+  void manipulateDataTable() async {
+    var latitude = currentLocation['latitude'];
+    var longitude = currentLocation['longitude'];
+    var radiusInKm = _currentIndex == 0
+        ? 20.0
+        : _currentIndex == 1
+            ? 700.0
+            : _currentIndex == 2 ? 30.0 : _currentIndex == 3 ? 10.0 : 10.0;
 
-  /*Future<void> verifyPhone() async {
-    final PhoneCodeSent smsCodeSent = (String veriId, [int forceCodeResend]) {
-      this.verificationId = veriId;
-      smsCodeDialog(context).then((value) {
-        print('signed in');
-      });
-    };
-
-    final PhoneVerificationCompleted verifiedSuccess = (FirebaseUser user) {
-      print('verified');
-    };
-
-    final PhoneVerificationFailed verificationFailed = (AuthException ex) {
-      print(ex.message);
-    };
-
-    await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: this.phoneNo,
-        codeAutoRetrievalTimeout: (veriId) {
-          verificationId = veriId;
-        },
-        codeSent: smsCodeSent,
-        timeout: const Duration(seconds: 5),
-        verificationCompleted: verifiedSuccess,
-        verificationFailed: verificationFailed);
-  }*/
-
-  /*Future<bool> smsCodeDialog(BuildContext context) {
-    return showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return new AlertDialog(
-            title: Text('Enter SMS code'),
-            content: TextField(
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                this.smsCode = value;
-              },
-            ),
-            contentPadding: EdgeInsets.all(10.0),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('Ok'),
-                onPressed: () {
-                  FirebaseAuth.instance.currentUser().then((user) {
-                    if (user != null) {
-                      Navigator.of(context).pop();
-                    } else {
-                      Navigator.of(context).pop();
-                      signIn();
-                    }
-                  });
-                },
-              )
-            ],
-          );
-        });
-  }*/
-
-  /*Future<void> phoneNumberRequestDialog(BuildContext context) {
-    return showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return new AlertDialog(
-            title: Text('Enter phone number'),
-            content: TextField(
-              keyboardType: TextInputType.phone,
-              onChanged: (value) {
-                this.phoneNo = value;
-              },
-            ),
-            contentPadding: EdgeInsets.all(10.0),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('Ok'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              )
-            ],
-          );
-        });
-  }*/
-
-  /*signIn() {
-    FirebaseAuth.instance
-        .signInWithPhoneNumber(
-            verificationId: this.verificationId, smsCode: this.smsCode)
-        .then((user) {})
-        .catchError((error) {
-      print(error);
-    });
-  }*/
+    var listOfKeys =
+        await Geofire.queryAtLocation(latitude, longitude, radiusInKm);
+    print(listOfKeys.length);
+  }
 
   @override
   void initState() {
@@ -249,6 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
           onPressed: () async {
             //getting the location
             currentLocation = await location.getLocation();
+            manipulateDataTable();
             Clipboard.setData(ClipboardData(
                 text:
                     'Lat: ${currentLocation['latitude']} | Long: ${currentLocation['longitude']}'));
@@ -258,26 +173,6 @@ class _MyHomePageState extends State<MyHomePage> {
             _scaffoldKey.currentState.showSnackBar(SnackBar(
               content: Text('location obtained and copied'),
             ));
-
-            //when login is success, we are getting the location details
-            /*try{
-                location.getLocation().then((val){
-                  currentLocation = val;
-                  var loggedInAnonUser = AnonymouseUser().toJson(user.uid, currentLocation["latitude"], currentLocation["longitude"]);
-
-                  //finally, pushing the values to the cloud firestore
-                  _dbRef.push().set(loggedInAnonUser);*/
-            /*Firestore.instance.collection('users').document().setData(loggedInAnonUser).then((e){
-                    print('done');
-                  }).catchError((e){print(e);});*/
-            /*});
-              }catch(e){
-                print(e);
-              }*/
-
-            /*}).catchError((e) {
-              print(e);
-            });*/
           },
         ),
         actions: <Widget>[
@@ -287,10 +182,6 @@ class _MyHomePageState extends State<MyHomePage> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () {
-              /*var route = MaterialPageRoute(
-                  builder: (BuildContext context) => loggedInUser.isAnonymous ? PhoneLoginScreen(currentLocation["latitude"], currentLocation["longitude"]) : VendorSettingsScreen(currentLocation["latitude"], currentLocation["longitude"]));
-
-              Navigator.of(context).push(route);*/
               print('${loggedInUser.uid}');
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) => VendorSettingsScreen(
@@ -301,20 +192,27 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: DataTable(
+      body: ListView(
+        children: <Widget>[
+          SingleChildScrollView(
+            child: DataTable(
         columns: [
           DataColumn(label: Text('Business Description')),
           DataColumn(label: Text('Distance'), numeric: true)
         ],
-        rows: [
-          DataRow(cells: [
-            DataCell(Text('data'), onTap: () {
-              var route = MaterialPageRoute(
-                  builder: (BuildContext context) => VendorDetailsScreen());
-              Navigator.of(context).push(route);
-            }),
-            DataCell(Text('1.0'))
-          ]),
+        rows: businessDetails
+            .map((business) => DataRow(cells: [
+                  DataCell(Text(business.businessDesc), onTap: () {
+                    var route = MaterialPageRoute(
+                        builder: (BuildContext context) =>
+                            VendorDetailsScreen());
+                    Navigator.of(context).push(route);
+                  }),
+                  DataCell(Text(business.distance))
+                ]))
+            .toList(),
+      ),
+          )
         ],
       ),
     );
