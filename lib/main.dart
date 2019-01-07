@@ -94,11 +94,16 @@ class _MyHomePageState extends State<MyHomePage> {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   FirebaseUser loggedInUser;
-  var businessDetails = <Vendors>[
-  
-  ];
+  var businessDetails = <Vendors>[];
 
   void manipulateDataTable() async {
+    var path = _currentIndex == 0
+        ? 'Delivery'
+        : _currentIndex == 1
+            ? 'Learn'
+            : _currentIndex == 2
+                ? "Service"
+                : _currentIndex == 3 ? 'Sell' : 'Rent';
     var latitude = currentLocation['latitude'];
     var longitude = currentLocation['longitude'];
     var radiusInKm = _currentIndex == 0
@@ -107,12 +112,14 @@ class _MyHomePageState extends State<MyHomePage> {
             ? 700.0
             : _currentIndex == 2 ? 30.0 : _currentIndex == 3 ? 10.0 : 10.0;
 
+    await Geofire.initialize('locations/$path');
+
     var listOfKeys =
         await Geofire.queryAtLocation(latitude, longitude, radiusInKm);
-        var tempList = listOfKeys.map((key)=>Vendors(key,key,'5')).toList();
-        setState(() {
-                  businessDetails = tempList;
-                });
+    var tempList = listOfKeys.map((key) => Vendors(key, key, '5')).toList();
+    setState(() {
+      businessDetails = tempList;
+    });
     print(listOfKeys.length);
   }
 
@@ -197,22 +204,22 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           SingleChildScrollView(
             child: DataTable(
-        columns: [
-          DataColumn(label: Text('Business Description')),
-          DataColumn(label: Text('Distance'), numeric: true)
-        ],
-        rows: businessDetails
-            .map((business) => DataRow(cells: [
-                  DataCell(Text(business.businessDesc), onTap: () {
-                    var route = MaterialPageRoute(
-                        builder: (BuildContext context) =>
-                            VendorDetailsScreen());
-                    Navigator.of(context).push(route);
-                  }),
-                  DataCell(Text(business.distance))
-                ]))
-            .toList(),
-      ),
+              columns: [
+                DataColumn(label: Text('Business Description')),
+                DataColumn(label: Text('Distance'), numeric: true)
+              ],
+              rows: businessDetails
+                  .map((business) => DataRow(cells: [
+                        DataCell(Text(business.businessDesc), onTap: () {
+                          var route = MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  VendorDetailsScreen());
+                          Navigator.of(context).push(route);
+                        }),
+                        DataCell(Text(business.distance))
+                      ]))
+                  .toList(),
+            ),
           )
         ],
       ),
