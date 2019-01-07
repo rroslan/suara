@@ -50,7 +50,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   }
 
   Future<void> initPlatformState() async {
-    String pathToRef = 'sites';
+    String pathToRef = 'locations';
     Geofire.initialize(pathToRef);
   }
 
@@ -66,6 +66,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
         setState(() {
           _vendorSettings = result;
         });
+        Geofire.initialize('locations/${_vendorSettings.category}');
       }
     });
   }
@@ -263,6 +264,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                 setState(() {
                   _vendorSettings.category = category;
                 });
+                await Geofire.initialize('locations/$category');
               }
             },
           ),
