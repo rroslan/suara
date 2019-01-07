@@ -109,6 +109,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var listOfKeys =
         await Geofire.queryAtLocation(latitude, longitude, radiusInKm);
+        var tempList = listOfKeys.map((key)=>Vendors(key,key,'5')).toList();
+        setState(() {
+                  businessDetails = tempList;
+                });
     print(listOfKeys.length);
   }
 
@@ -118,9 +122,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _dbRef = FirebaseDatabase.instance.reference().child('AnonUsers');
     FirebaseAuth.instance.currentUser().then((user) {
       if (user == null) {
-        /*phoneNumberRequestDialog(context).then((value){
-          verifyPhone();
-        });*/
       } else {
         setState(() {
           loggedInUser = user;
