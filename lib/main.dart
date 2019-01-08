@@ -128,7 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ref.snapshots().listen((data) {
         var vendor = VendorSettings.fromJson(data.data);
         setState(() {
-                  businessDetails.add(Vendors(vendor.uid, vendor.businessDesc, '1'));
+                  businessDetails.add(Vendors(vendor.uid, vendor.businessDesc, '${radiusInKm.toInt()} km'));
                 });
       });
     }
