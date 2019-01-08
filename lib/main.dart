@@ -97,8 +97,13 @@ class _MyHomePageState extends State<MyHomePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   FirebaseUser loggedInUser;
   var businessDetails = <Vendors>[];
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
 
-  void manipulateDataTable() async {
+  Future<void> manipulateDataTable() async {
+    if(currentLocation.values.length == 0){
+      return;
+    }
     var path = _currentIndex == 0
         ? 'Delivery'
         : _currentIndex == 1
@@ -119,17 +124,21 @@ class _MyHomePageState extends State<MyHomePage> {
     var listOfKeys =
         await Geofire.queryAtLocation(latitude, longitude, radiusInKm);
 
-    final listOfRefs =
-        listOfKeys.map((key) => Firestore.instance.document('vendorsettings/$key')).toList();
+    final listOfRefs = listOfKeys
+        .map((key) => Firestore.instance.document('vendorsettings/$key'))
+        .toList();
 
-        businessDetails = [];
+    setState(() {
+      businessDetails = [];
+    });
 
     for (var ref in listOfRefs) {
       ref.snapshots().listen((data) {
         var vendor = VendorSettings.fromJson(data.data);
         setState(() {
-                  businessDetails.add(Vendors(vendor.uid, vendor.businessDesc, '${radiusInKm.toInt()} km'));
-                });
+          businessDetails.add(Vendors(
+              vendor.uid, vendor.businessDesc, '${radiusInKm.toInt()} km'));
+        });
       });
     }
 
@@ -165,6 +174,8 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     });
+    //when the widget is build, then runs this callback
+    WidgetsBinding.instance.addPostFrameCallback((_)=>_refreshIndicatorKey.currentState.show());
   }
 
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
@@ -179,6 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
           setState(() {
             _currentIndex = tappedIndex;
           });
+          _refreshIndicatorKey.currentState.show();
         },
         type: BottomNavigationBarType.fixed,
         items: [
@@ -230,28 +242,32 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: ListView(
-        children: <Widget>[
-          SingleChildScrollView(
-            child: DataTable(
-              columns: [
-                DataColumn(label: Text('Business Description')),
-                DataColumn(label: Text('Distance'), numeric: true)
-              ],
-              rows: businessDetails
-                  .map((business) => DataRow(cells: [
-                        DataCell(Text(business.businessDesc), onTap: () {
-                          var route = MaterialPageRoute(
-                              builder: (BuildContext context) =>
-                                  VendorDetailsScreen());
-                          Navigator.of(context).push(route);
-                        }),
-                        DataCell(Text(business.distance))
-                      ]))
-                  .toList(),
-            ),
-          )
-        ],
+      body: RefreshIndicator(
+        key: _refreshIndicatorKey,
+        onRefresh: manipulateDataTable,
+        child: ListView(
+          children: <Widget>[
+            SingleChildScrollView(
+              child: DataTable(
+                columns: [
+                  DataColumn(label: Text('Business Description')),
+                  DataColumn(label: Text('Distance'), numeric: true)
+                ],
+                rows: businessDetails
+                    .map((business) => DataRow(cells: [
+                          DataCell(Text(business.businessDesc), onTap: () {
+                            var route = MaterialPageRoute(
+                                builder: (BuildContext context) =>
+                                    VendorDetailsScreen());
+                            Navigator.of(context).push(route);
+                          }),
+                          DataCell(Text(business.distance))
+                        ]))
+                    .toList(),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
