@@ -1,5 +1,6 @@
 class Vendors{
   String uid;
+  String businessName;
   String businessDesc;
   String distance;
 
@@ -9,7 +10,7 @@ class Vendors{
     distance = f['distance'];
   }
 
-  Vendors(this.uid,this.businessDesc,this.distance);
+  Vendors(this.uid,this.businessName,this.businessDesc,this.distance);
 
   toJson(){
     return{
