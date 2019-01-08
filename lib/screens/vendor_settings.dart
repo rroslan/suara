@@ -22,6 +22,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   static const platform = const MethodChannel('saura.biz/deeplinks');
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
   var _vendorSettings = new VendorSettings();
+  final _categoriesList = <String>['Delivery','Learn','Service','Sell','Rent'];
 
   Future<dynamic> navigateToSettingsPage(String title, initialValue) {
     return Navigator.of(context).push(MaterialPageRoute(
@@ -82,6 +83,15 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           activeColor: Colors.green,
           inactiveThumbColor: Colors.grey,
           onChanged: (val) async {
+            //removing existing geofire entries
+            for(var cat in _categoriesList){
+              await Geofire.initialize('locations/$cat');
+              await Geofire.removeLocation(widget._loggedInUserId);
+            }
+
+            //re-initializing the user selected category
+            await Geofire.initialize('locations/${_vendorSettings.category}');
+            
             print('logged in user Id: ${widget._loggedInUserId}');
             bool response = await Geofire.setLocation(
                 widget._loggedInUserId, widget._latitude, widget._longitude);
@@ -264,7 +274,6 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                 setState(() {
                   _vendorSettings.category = category;
                 });
-                await Geofire.initialize('locations/$category');
               }
             },
           ),
