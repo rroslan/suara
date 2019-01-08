@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:suara/common/common.dart';
 import 'package:suara/models/anon_user.dart';
+import 'package:suara/models/vendor_settings.dart';
 import 'package:suara/models/vendors.dart';
 import 'package:suara/screens/phone_login.dart';
 import 'package:suara/screens/vendor_details.dart';
@@ -11,6 +12,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:suara/screens/vendor_settings.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() => runApp(MyApp());
 
@@ -116,10 +118,38 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var listOfKeys =
         await Geofire.queryAtLocation(latitude, longitude, radiusInKm);
-    var tempList = listOfKeys.map((key) => Vendors(key, key, '5')).toList();
+
+    final listOfRefs =
+        listOfKeys.map((key) => Firestore.instance.document('vendorsettings/$key')).toList();
+
+        businessDetails = [];
+
+    for (var ref in listOfRefs) {
+      ref.snapshots().listen((data) {
+        var vendor = VendorSettings.fromJson(data.data);
+        setState(() {
+                  businessDetails.add(Vendors(vendor.uid, vendor.businessDesc, '1'));
+                });
+      });
+    }
+
+    /*Firestore.instance
+        .collection('vendorsettings')
+        .where('uid', arrayContains: listOfKeys)
+        .snapshots()
+        .listen((data) {
+          if(data.documents.length > 0){
+            for(var doc in data.documents){
+              print(doc);
+            }
+          }
+        });*/
+
+    //Future<dynamic> futures = listOfKeys.map((key)=>firebaseDbRef.child('path')).toList();
+    /*var tempList = listOfKeys.map((key) => Vendors(key, key, '5')).toList();
     setState(() {
       businessDetails = tempList;
-    });
+    });*/
     print(listOfKeys.length);
   }
 
