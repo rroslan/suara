@@ -115,9 +115,9 @@ class _MyHomePageState extends State<MyHomePage> {
     var longitude = currentLocation['longitude'];
     var radiusInKm = _currentIndex == 0
         ? 20.0
-        : _currentIndex == 1
+        : _currentIndex == 1.0
             ? 700.0
-            : _currentIndex == 2 ? 30.0 : _currentIndex == 3 ? 10.0 : 10.0;
+            : _currentIndex == 2 ? 1.0 : _currentIndex == 3 ? 10.0 : 10.0;
 
     await Geofire.initialize('locations/$path');
 
@@ -137,7 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
         var vendor = VendorSettings.fromJson(data.data);
         setState(() {
           businessDetails.add(Vendors(
-              vendor.uid, vendor.businessDesc, '${radiusInKm.toInt()} km'));
+              vendor.uid,vendor.businessName, vendor.businessDesc, '${radiusInKm.toInt()} km'));
         });
       });
     }
@@ -250,11 +250,13 @@ class _MyHomePageState extends State<MyHomePage> {
             SingleChildScrollView(
               child: DataTable(
                 columns: [
-                  DataColumn(label: Text('Business Description')),
-                  DataColumn(label: Text('Distance'), numeric: true)
+                  DataColumn(label: Expanded(child: Text('Name'),)),
+                  DataColumn(label: Expanded(child: Text('Description'),)),
+                  DataColumn(label: Expanded(child: Text('Distance'),), numeric: true)
                 ],
                 rows: businessDetails
                     .map((business) => DataRow(cells: [
+                      DataCell(Text(business.businessName)),
                           DataCell(Text(business.businessDesc), onTap: () {
                             var route = MaterialPageRoute(
                                 builder: (BuildContext context) =>
