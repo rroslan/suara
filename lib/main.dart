@@ -250,14 +250,19 @@ class _MyHomePageState extends State<MyHomePage> {
             SingleChildScrollView(
               child: DataTable(
                 columns: [
-                  DataColumn(label: Expanded(child: Text('Name'),)),
-                  DataColumn(label: Expanded(child: Text('Description'),)),
+                  DataColumn(label: Expanded(child: Text('Name & Description'),)),
                   DataColumn(label: Expanded(child: Text('Distance'),), numeric: true)
                 ],
                 rows: businessDetails
                     .map((business) => DataRow(cells: [
-                      DataCell(Text(business.businessName)),
-                          DataCell(Text(business.businessDesc), onTap: () {
+                          DataCell(Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: <Widget>[
+                              Container(child: Text(business.businessName,)),
+                              Text(business.businessDesc)
+                            ],
+                          ), onTap: () {
                             var route = MaterialPageRoute(
                                 builder: (BuildContext context) =>
                                     VendorDetailsScreen());
