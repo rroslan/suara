@@ -17,20 +17,6 @@ Future<dynamic> getLocation() async {
   return location;
 }
 
-Future<void> setOnlineStatus(bool val) async {
-  var pref = await SharedPreferences.getInstance();
-  await pref.setBool('onlinestatus', val);
-}
-
-Future<bool> getOnlineStatus() async {
-  try {
-    var pref = await SharedPreferences.getInstance();
-    return pref.getBool('onlinestatus');
-  } catch (error) {
-    return null;
-  }
-}
-
 //commonly used for any error message that is given from firebase auth API
 /*SnackBar errorSnackBar(
         GlobalKey<ScaffoldState> scaffoldKey, String errorMessage) =>
