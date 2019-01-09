@@ -22,7 +22,14 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   static const platform = const MethodChannel('saura.biz/deeplinks');
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
   var _vendorSettings = new VendorSettings();
-  final _categoriesList = <String>['Delivery','Learn','Service','Sell','Rent'];
+  final _categoriesList = <String>[
+    'Delivery',
+    'Learn',
+    'Service',
+    'Sell',
+    'Rent'
+  ];
+  bool _switchState = false;
 
   Future<dynamic> navigateToSettingsPage(String title, initialValue) {
     return Navigator.of(context).push(MaterialPageRoute(
@@ -79,23 +86,46 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
       appBar: AppBar(
         title: Text('Vendor Settings'),
         leading: Switch(
-          value: false,
+          value: _switchState,
           activeColor: Colors.green,
           inactiveThumbColor: Colors.grey,
           onChanged: (val) async {
-            //removing existing geofire entries
-            for(var cat in _categoriesList){
-              await Geofire.initialize('locations/$cat');
-              await Geofire.removeLocation(widget._loggedInUserId);
+            if (val) {
+              _scaffoldKey.currentState.showSnackBar(SnackBar(
+                content: Row(
+                  children: <Widget>[
+                    CircularProgressIndicator(),
+                    Padding(
+                      padding: EdgeInsets.only(left: 15.0),
+                      child: Text('Switching to online...'),
+                    )
+                  ],
+                ),
+                duration: Duration(minutes: 1),
+              ));
+
+              //removing existing geofire entries
+              for (var cat in _categoriesList) {
+                await Geofire.initialize('locations/$cat');
+                await Geofire.removeLocation(widget._loggedInUserId);
+              }
+
+              //re-initializing the user selected category
+              await Geofire.initialize('locations/${_vendorSettings.category}');
+
+              print('logged in user Id: ${widget._loggedInUserId}');
+              bool response = await Geofire.setLocation(
+                  widget._loggedInUserId, widget._latitude, widget._longitude);
+              print('geofire response: $response');
+
+              //hide the please wait snack bar
+              _scaffoldKey.currentState.hideCurrentSnackBar();
             }
 
-            //re-initializing the user selected category
-            await Geofire.initialize('locations/${_vendorSettings.category}');
-            
-            print('logged in user Id: ${widget._loggedInUserId}');
-            bool response = await Geofire.setLocation(
-                widget._loggedInUserId, widget._latitude, widget._longitude);
-            print('geofire response: $response');
+            setState(() {
+              _switchState = val;
+            });
+
             _scaffoldKey.currentState.showSnackBar(SnackBar(
               content: Text(val ? 'Online' : 'Offline'),
             ));
