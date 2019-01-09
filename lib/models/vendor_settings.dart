@@ -7,6 +7,7 @@ class VendorSettings{
   String whatsappNo;
   String phoneNo;
   String category;
+  bool isOnline;
 
   toJson(){
     return{
@@ -20,7 +21,8 @@ class VendorSettings{
       },
       'whatsappNo':whatsappNo,
       'phoneNo':phoneNo,
-      'category':category
+      'category':category,
+      'isOnline':isOnline
     };
   }
   VendorSettings();
@@ -34,5 +36,6 @@ class VendorSettings{
     whatsappNo = f['whatsappNo'];
     phoneNo = f['phoneNo'];
     category = f['category'];
+    isOnline = f['isOnline'] == null ? false : f['isOnline'];
   }
 }
