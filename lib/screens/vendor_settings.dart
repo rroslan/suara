@@ -30,7 +30,6 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
     'Sell',
     'Rent'
   ];
-  bool _switchState = false;
 
   Future<dynamic> navigateToSettingsPage(String title, initialValue) {
     return Navigator.of(context).push(MaterialPageRoute(
@@ -85,10 +84,9 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
       }
     });
 
-    var status = await getOnlineStatus();
-    setState(() {
+    /*setState(() {
       _switchState = status == null ? false : status;
-    });
+    });*/
   }
 
   Future<void> removeExistingGeofireEntries() async {
@@ -142,7 +140,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
       appBar: AppBar(
         title: Text('Vendor Settings'),
         leading: Switch(
-          value: _switchState,
+          value: _vendorSettings.isOnline == null ? false : _vendorSettings.isOnline,
           activeColor: Colors.green,
           inactiveThumbColor: Colors.grey,
           onChanged: (val) async {
@@ -192,15 +190,17 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
               await removeExistingGeofireEntries();
             }
 
+            await Firestore.instance
+                      .collection('vendorsettings')
+                      .document(_vendorSettings.uid)
+                      .updateData({'isOnline':val});
+
             //hide the progressive snack bar
             _scaffoldKey.currentState.hideCurrentSnackBar();
 
             setState(() {
-              _switchState = val;
+              _vendorSettings.isOnline = val;
             });
-
-            //shared pref
-            await setOnlineStatus(val);
 
             _scaffoldKey.currentState.showSnackBar(SnackBar(
               content: Text(val ? 'Online' : 'Offline'),
