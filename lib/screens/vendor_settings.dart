@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart';
+import 'package:suara/common/common.dart';
 import 'package:suara/models/vendor_settings.dart';
 import 'package:suara/screens/payment_topup.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
@@ -53,6 +54,12 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   @override
   void initState() {
     super.initState();
+    setState(() {
+      _vendorSettings.location = {
+        'latitude': widget._latitude,
+        'longitude': widget._longitude
+      };
+    });
     getLoggedInUserDetails();
     initPlatformState();
   }
@@ -62,7 +69,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
     Geofire.initialize(pathToRef);
   }
 
-  void getLoggedInUserDetails() {
+  void getLoggedInUserDetails() async {
     Firestore.instance
         .collection('vendorsettings')
         .where('uid', isEqualTo: widget._loggedInUserId)
@@ -77,8 +84,57 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
         Geofire.initialize('locations/${_vendorSettings.category}');
       }
     });
+
+    var status = await getOnlineStatus();
+    setState(() {
+      _switchState = status == null ? false : status;
+    });
   }
 
+  Future<void> removeExistingGeofireEntries() async {
+    for (var cat in _categoriesList) {
+      await Geofire.initialize('locations/$cat');
+      await Geofire.removeLocation(widget._loggedInUserId);
+    }
+  }
+
+  void showProgressSnackBar(ScaffoldState scaffState, String message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Row(
+        children: <Widget>[
+          CircularProgressIndicator(),
+          Padding(
+            padding: EdgeInsets.only(left: 15.0),
+            child: Text(message),
+          )
+        ],
+      ),
+      duration: Duration(seconds: 5),
+    ));
+  }
+
+  Future<bool> showLocationNullValidationDialog() => showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+            title: Text('Location not found'),
+            content: Text(
+                'The current location has not been set. Do you want to get the location and try again?'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('NO'),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+              ),
+              FlatButton(
+                child: Text('YES'),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+            ],
+          ));
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,40 +147,60 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           inactiveThumbColor: Colors.grey,
           onChanged: (val) async {
             if (val) {
-              _scaffoldKey.currentState.showSnackBar(SnackBar(
-                content: Row(
-                  children: <Widget>[
-                    CircularProgressIndicator(),
-                    Padding(
-                      padding: EdgeInsets.only(left: 15.0),
-                      child: Text('Switching to online...'),
-                    )
-                  ],
-                ),
-                duration: Duration(minutes: 1),
-              ));
+              //checking if location is null. if it is, asking if want to fetch the current location
+              if (_vendorSettings.location['latitude'] == null ||
+                  _vendorSettings.location['longitude'] == null) {
+                var result = await showLocationNullValidationDialog();
+
+                if (result) {
+                  showProgressSnackBar(
+                      _scaffoldKey.currentState, 'Getting current location...');
+
+                  //getting result
+                  var currentLocation = await Location().getLocation();
+                  setState(() {
+                    _vendorSettings.location = {
+                      'latitude': currentLocation['latitude'],
+                      'longitude': currentLocation['longitude']
+                    };
+                  });
+                  _scaffoldKey.currentState.hideCurrentSnackBar();
+                } else {
+                  return;
+                }
+              }
+
+              showProgressSnackBar(
+                  _scaffoldKey.currentState, 'Switching to online...');
 
               //removing existing geofire entries
-              for (var cat in _categoriesList) {
-                await Geofire.initialize('locations/$cat');
-                await Geofire.removeLocation(widget._loggedInUserId);
-              }
+              await removeExistingGeofireEntries();
 
               //re-initializing the user selected category
               await Geofire.initialize('locations/${_vendorSettings.category}');
 
               print('logged in user Id: ${widget._loggedInUserId}');
               bool response = await Geofire.setLocation(
-                  widget._loggedInUserId, widget._latitude, widget._longitude);
+                  widget._loggedInUserId,
+                  _vendorSettings.location['latitude'],
+                  _vendorSettings.location['longitude']);
               print('geofire response: $response');
-
-              //hide the please wait snack bar
-              _scaffoldKey.currentState.hideCurrentSnackBar();
+            } else {
+              showProgressSnackBar(
+                  _scaffoldKey.currentState, 'Going offline...');
+              //removing existing geofire entries
+              await removeExistingGeofireEntries();
             }
+
+            //hide the progressive snack bar
+            _scaffoldKey.currentState.hideCurrentSnackBar();
 
             setState(() {
               _switchState = val;
             });
+
+            //shared pref
+            await setOnlineStatus(val);
 
             _scaffoldKey.currentState.showSnackBar(SnackBar(
               content: Text(val ? 'Online' : 'Offline'),
