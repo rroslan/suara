@@ -25,7 +25,7 @@ class VendorSettings{
       'isOnline':isOnline
     };
   }
-  VendorSettings();
+  VendorSettings(this.uid);
 
   VendorSettings.fromJson(dynamic f){
     uid = f['uid'];

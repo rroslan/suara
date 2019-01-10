@@ -20,9 +20,10 @@ class VendorSettingsScreen extends StatefulWidget {
 }
 
 class VendorSettingsScreenState extends State<VendorSettingsScreen> {
+  bool isChangedFlag = false;
   static const platform = const MethodChannel('saura.biz/deeplinks');
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
-  var _vendorSettings = new VendorSettings();
+  VendorSettings _vendorSettings;
   final _categoriesList = <String>[
     'Delivery',
     'Learn',
@@ -53,6 +54,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _vendorSettings = VendorSettings(widget._loggedInUserId);
     setState(() {
       _vendorSettings.location = {
         'latitude': widget._latitude,
@@ -71,7 +73,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   void getLoggedInUserDetails() async {
     Firestore.instance
         .collection('vendorsettings')
-        .where('uid', isEqualTo: widget._loggedInUserId)
+        .where('uid', isEqualTo: _vendorSettings.uid)
         .snapshots()
         .listen((data) {
       if (data.documents.length > 0) {
@@ -92,7 +94,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   Future<void> removeExistingGeofireEntries() async {
     for (var cat in _categoriesList) {
       await Geofire.initialize('locations/$cat');
-      await Geofire.removeLocation(widget._loggedInUserId);
+      await Geofire.removeLocation(_vendorSettings.uid);
     }
   }
 
@@ -133,282 +135,415 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
               ),
             ],
           ));
+
+  Future<bool> showCategoryNullValidationDialog() => showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+            title: Text('Category not found'),
+            content: Text(
+                'Default category has not been set. Do you want to set it and try again?'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('NO'),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+              ),
+              FlatButton(
+                child: Text('YES'),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+            ],
+          ));
+
+  Future<void> saveChanges() async {
+    print(_vendorSettings.uid);
+    var vendorSettings = _vendorSettings.toJson();
+    await Firestore.instance
+        .collection('vendorsettings')
+        .document(_vendorSettings.uid)
+        .setData(vendorSettings);
+
+    isChangedFlag = false;
+    print('done');
+  }
+
+  Future<bool> willPopScope() {
+    Future<bool> result;
+    if (isChangedFlag) {
+      result = showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+                title: Text('Changes not saved'),
+                content:
+                    Text('There are unsaved changes. Do you want to save?'),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('NO'),
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                      return true;
+                    },
+                  ),
+                  FlatButton(
+                    child: Text('YES'),
+                    onPressed: () async {
+                      await saveChanges();
+                      Navigator.of(context).pop(true);
+                      return true;
+                    },
+                  )
+                ],
+              ));
+    } else {
+      result = Future.value(true);
+    }
+
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        title: Text('Vendor Settings'),
-        leading: Switch(
-          value: _vendorSettings.isOnline == null ? false : _vendorSettings.isOnline,
-          activeColor: Colors.green,
-          inactiveThumbColor: Colors.grey,
-          onChanged: (val) async {
-            if (val) {
-              //checking if location is null. if it is, asking if want to fetch the current location
-              if (_vendorSettings.location['latitude'] == null ||
-                  _vendorSettings.location['longitude'] == null) {
-                var result = await showLocationNullValidationDialog();
+    return WillPopScope(
+      child: Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          title: Text('Vendor Settings'),
+          leading: Switch(
+            value: _vendorSettings.isOnline == null
+                ? false
+                : _vendorSettings.isOnline,
+            activeColor: Colors.green,
+            inactiveThumbColor: Colors.grey,
+            onChanged: (val) async {
+              if (val) {
+                //checking if location is null. if it is, asking if want to fetch the current location
+                if (_vendorSettings.location['latitude'] == null ||
+                    _vendorSettings.location['longitude'] == null) {
+                  var result = await showLocationNullValidationDialog();
 
-                if (result) {
-                  showProgressSnackBar(
-                      _scaffoldKey.currentState, 'Getting current location...');
+                  //getting location
+                  if (result) {
+                    showProgressSnackBar(_scaffoldKey.currentState,
+                        'Getting current location...');
 
-                  //getting result
+                    //getting result
+                    var currentLocation = await Location().getLocation();
+                    setState(() {
+                      _vendorSettings.location = {
+                        'latitude': currentLocation['latitude'],
+                        'longitude': currentLocation['longitude']
+                      };
+                    });
+                    isChangedFlag = true;
+                    _scaffoldKey.currentState.hideCurrentSnackBar();
+                  } else {
+                    return;
+                  }
+                }
+
+                //checking if we have a default category selected
+                if (_vendorSettings.category == null) {
+                  var result = await showCategoryNullValidationDialog();
+
+                  if (result) {
+                    var category = await Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                CategoriesScreen(_vendorSettings.category),
+                            fullscreenDialog: true));
+                    if (category != null) {
+                      setState(() {
+                        _vendorSettings.category = category;
+                      });
+                      isChangedFlag = true;
+                    }
+                  } else {
+                    return;
+                  }
+                }
+
+                //before switching online, we need to save the user made changes to maintain the data consistency
+                if (isChangedFlag) {
+                  var result = await showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => AlertDialog(
+                            title: Text('Changes not saved'),
+                            content: Text(
+                                'There are unsaved changes. Do you want to save?'),
+                            actions: <Widget>[
+                              FlatButton(
+                                child: Text('NO'),
+                                onPressed: () {
+                                  Navigator.of(context).pop(false);
+                                },
+                              ),
+                              FlatButton(
+                                child: Text('YES'),
+                                onPressed: () async {
+                                  showProgressSnackBar(
+                                      _scaffoldKey.currentState,
+                                      'Saving changes...');
+                                  await saveChanges();
+                                  _scaffoldKey.currentState.hideCurrentSnackBar();
+                                  Navigator.of(context).pop(true);
+                                },
+                              )
+                            ],
+                          ));
+
+                  if (result == false) {
+                    return;
+                  }
+                }
+
+                showProgressSnackBar(
+                    _scaffoldKey.currentState, 'Switching to online...');
+
+                //removing existing geofire entries
+                await removeExistingGeofireEntries();
+
+                //re-initializing the user selected category
+                await Geofire.initialize(
+                    'locations/${_vendorSettings.category}');
+
+                print('logged in user Id: ${_vendorSettings.uid}');
+                bool response = await Geofire.setLocation(
+                    _vendorSettings.uid,
+                    _vendorSettings.location['latitude'],
+                    _vendorSettings.location['longitude']);
+                print('geofire response: $response');
+              } else {
+                showProgressSnackBar(
+                    _scaffoldKey.currentState, 'Going offline...');
+                //removing existing geofire entries
+                await removeExistingGeofireEntries();
+              }
+
+              await Firestore.instance
+                  .collection('vendorsettings')
+                  .document(_vendorSettings.uid)
+                  .updateData({'isOnline': val});
+
+              //hide the progressive snack bar
+              _scaffoldKey.currentState.hideCurrentSnackBar();
+
+              setState(() {
+                _vendorSettings.isOnline = val;
+              });
+
+              _scaffoldKey.currentState.showSnackBar(SnackBar(
+                content: Text(val ? 'Online' : 'Offline'),
+              ));
+            },
+          ),
+          actions: <Widget>[
+            Row(
+              children: <Widget>[
+                Text('Available Balance'),
+                IconButton(
+                  icon: Icon(Icons.payment),
+                  tooltip: 'Buy credit',
+                  onPressed: () {
+                    var route = MaterialPageRoute(
+                        builder: (BuildContext context) =>
+                            PaymentTopUpScreen());
+
+                    Navigator.of(context).push(route);
+                  },
+                )
+              ],
+            )
+          ],
+        ),
+        body: ListView(
+          children: <Widget>[
+            ListTile(
+              title: Text('Business Name'),
+              subtitle: Text(_vendorSettings.businessName != null
+                  ? _vendorSettings.businessName
+                  : 'Unspecified'),
+              onTap: () async {
+                var businessName = await navigateToSettingsPage(
+                    'Business Name',
+                    _vendorSettings.businessName != null
+                        ? _vendorSettings.businessName
+                        : '');
+                if (businessName != null) {
+                  setState(() {
+                    _vendorSettings.businessName = businessName;
+                  });
+                  isChangedFlag = true;
+                }
+              },
+            ),
+            ListTile(
+              title: Text('Business Description'),
+              subtitle: Text(_vendorSettings.businessDesc != null
+                  ? _vendorSettings.businessDesc
+                  : 'Unspecified'),
+              onTap: () async {
+                var businessDesc = await navigateToSettingsPage(
+                    'Business Description',
+                    _vendorSettings.businessDesc != null
+                        ? _vendorSettings.businessDesc
+                        : '');
+                if (businessDesc != null) {
+                  setState(() {
+                    _vendorSettings.businessDesc = businessDesc;
+                  });
+                  isChangedFlag = true;
+                }
+              },
+            ),
+            ListTile(
+              title: Text('FB Page URL'),
+              subtitle: Text(_vendorSettings.fbURL != null
+                  ? _vendorSettings.fbURL
+                  : 'Unspecified'),
+              onTap: () async {
+                var fbURL = await navigateToSettingsPage('FB Page URL',
+                    _vendorSettings.fbURL != null ? _vendorSettings.fbURL : '');
+                if (fbURL != null) {
+                  setState(() {
+                    _vendorSettings.fbURL = fbURL;
+                  });
+                  isChangedFlag = true;
+                }
+              },
+            ),
+            ListTile(
+              title: Text('Location'),
+              subtitle: Text(_vendorSettings.location != null
+                  ? 'Lat: ${_vendorSettings.location['latitude']}  |  Long: ${_vendorSettings.location['longitude']}'
+                  : 'Lat: 0.0000  |  Long: 0.0000'),
+              onTap: () async {
+                var location = await navigateToSettingsPage(
+                    'Location',
+                    _vendorSettings.location != null
+                        ? '${_vendorSettings.location['latitude']}|${_vendorSettings.location['longitude']}'
+                        : null);
+                if (location != null) {
+                  setState(() {
+                    _vendorSettings.location = location;
+                  });
+                  isChangedFlag = true;
+                }
+              },
+              trailing: IconButton(
+                icon: Icon(Icons.pin_drop),
+                onPressed: () async {
                   var currentLocation = await Location().getLocation();
+                  Clipboard.setData(ClipboardData(
+                      text:
+                          'Lat: ${currentLocation['latitude']} | Long: ${currentLocation['longitude']}'));
+
                   setState(() {
                     _vendorSettings.location = {
                       'latitude': currentLocation['latitude'],
                       'longitude': currentLocation['longitude']
                     };
                   });
-                  _scaffoldKey.currentState.hideCurrentSnackBar();
-                } else {
-                  return;
-                }
-              }
-
-              showProgressSnackBar(
-                  _scaffoldKey.currentState, 'Switching to online...');
-
-              //removing existing geofire entries
-              await removeExistingGeofireEntries();
-
-              //re-initializing the user selected category
-              await Geofire.initialize('locations/${_vendorSettings.category}');
-
-              print('logged in user Id: ${widget._loggedInUserId}');
-              bool response = await Geofire.setLocation(
-                  widget._loggedInUserId,
-                  _vendorSettings.location['latitude'],
-                  _vendorSettings.location['longitude']);
-              print('geofire response: $response');
-            } else {
-              showProgressSnackBar(
-                  _scaffoldKey.currentState, 'Going offline...');
-              //removing existing geofire entries
-              await removeExistingGeofireEntries();
-            }
-
-            await Firestore.instance
-                      .collection('vendorsettings')
-                      .document(_vendorSettings.uid)
-                      .updateData({'isOnline':val});
-
-            //hide the progressive snack bar
-            _scaffoldKey.currentState.hideCurrentSnackBar();
-
-            setState(() {
-              _vendorSettings.isOnline = val;
-            });
-
-            _scaffoldKey.currentState.showSnackBar(SnackBar(
-              content: Text(val ? 'Online' : 'Offline'),
-            ));
-          },
-        ),
-        actions: <Widget>[
-          Row(
-            children: <Widget>[
-              Text('Available Balance'),
-              IconButton(
-                icon: Icon(Icons.payment),
-                tooltip: 'Buy credit',
-                onPressed: () {
-                  var route = MaterialPageRoute(
-                      builder: (BuildContext context) => PaymentTopUpScreen());
-
-                  Navigator.of(context).push(route);
+                  isChangedFlag = true;
                 },
-              )
-            ],
-          )
-        ],
-      ),
-      body: ListView(
-        children: <Widget>[
-          ListTile(
-            title: Text('Business Name'),
-            subtitle: Text(_vendorSettings.businessName != null
-                ? _vendorSettings.businessName
-                : 'Unspecified'),
-            onTap: () async {
-              var businessName = await navigateToSettingsPage(
-                  'Business Name',
-                  _vendorSettings.businessName != null
-                      ? _vendorSettings.businessName
-                      : '');
-              if (businessName != null) {
-                setState(() {
-                  _vendorSettings.businessName = businessName;
-                });
-              }
-            },
-          ),
-          ListTile(
-            title: Text('Business Description'),
-            subtitle: Text(_vendorSettings.businessDesc != null
-                ? _vendorSettings.businessDesc
-                : 'Unspecified'),
-            onTap: () async {
-              var businessDesc = await navigateToSettingsPage(
-                  'Business Description',
-                  _vendorSettings.businessDesc != null
-                      ? _vendorSettings.businessDesc
-                      : '');
-              if (businessDesc != null) {
-                setState(() {
-                  _vendorSettings.businessDesc = businessDesc;
-                });
-              }
-            },
-          ),
-          ListTile(
-            title: Text('FB Page URL'),
-            subtitle: Text(_vendorSettings.fbURL != null
-                ? _vendorSettings.fbURL
-                : 'Unspecified'),
-            onTap: () async {
-              var fbURL = await navigateToSettingsPage('FB Page URL',
-                  _vendorSettings.fbURL != null ? _vendorSettings.fbURL : '');
-              if (fbURL != null) {
-                setState(() {
-                  _vendorSettings.fbURL = fbURL;
-                });
-              }
-            },
-          ),
-          ListTile(
-            title: Text('Location'),
-            subtitle: Text(_vendorSettings.location != null
-                ? 'Lat: ${_vendorSettings.location['latitude']}  |  Long: ${_vendorSettings.location['longitude']}'
-                : 'Lat: 0.0000  |  Long: 0.0000'),
-            onTap: () async {
-              var location = await navigateToSettingsPage(
-                  'Location',
-                  _vendorSettings.location != null
-                      ? '${_vendorSettings.location['latitude']}|${_vendorSettings.location['longitude']}'
-                      : null);
-              if (location != null) {
-                setState(() {
-                  _vendorSettings.location = location;
-                });
-              }
-            },
-            trailing: IconButton(
-              icon: Icon(Icons.pin_drop),
-              onPressed: () async {
-                var currentLocation = await Location().getLocation();
-                Clipboard.setData(ClipboardData(
-                    text:
-                        'Lat: ${currentLocation['latitude']} | Long: ${currentLocation['longitude']}'));
-
-                setState(() {
-                  _vendorSettings.location = {
-                    'latitude': currentLocation['latitude'],
-                    'longitude': currentLocation['longitude']
-                  };
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: Text('Whatsapp Number'),
-            subtitle: Text(_vendorSettings.whatsappNo != null
-                ? _vendorSettings.whatsappNo.isNotEmpty
-                    ? _vendorSettings.whatsappNo
-                    : 'Unspecified'
-                : 'Unspecified'),
-            onTap: () async {
-              var whatsappNo = await navigateToSettingsPage(
-                  'Whatsapp No',
-                  _vendorSettings.whatsappNo != null
-                      ? _vendorSettings.whatsappNo.isNotEmpty
-                          ? _vendorSettings.whatsappNo
-                          : ''
-                      : '');
-              if (whatsappNo != null) {
-                setState(() {
-                  _vendorSettings.whatsappNo = whatsappNo;
-                });
-              }
-            },
-          ),
-          ListTile(
-            title: Text('Phone Number'),
-            subtitle: Text(_vendorSettings.phoneNo != null
-                ? _vendorSettings.phoneNo.isNotEmpty
-                    ? _vendorSettings.phoneNo
-                    : 'Unspecified'
-                : 'Unspecified'),
-            onTap: () async {
-              var phoneNo = await navigateToSettingsPage(
-                  'Phone No',
-                  _vendorSettings.phoneNo != null
-                      ? _vendorSettings.phoneNo.isNotEmpty
-                          ? _vendorSettings.phoneNo
-                          : ''
-                      : '');
-              if (phoneNo != null) {
-                setState(() {
-                  _vendorSettings.phoneNo = phoneNo;
-                });
-              }
-            },
-          ),
-          ListTile(
-            title: Text('Open in Waze'),
-            onTap: () {
-              openWazeLink().then((result) {
-                print(result);
-              });
-            },
-          ),
-          ListTile(
-            title: Text('Default Category'),
-            subtitle: Text(_vendorSettings.category == null
-                ? 'Unspecified'
-                : _vendorSettings.category.isEmpty
-                    ? 'Unspecified'
-                    : _vendorSettings.category),
-            onTap: () async {
-              var category = await Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) =>
-                      CategoriesScreen(_vendorSettings.category),
-                  fullscreenDialog: true));
-              if (category != null) {
-                setState(() {
-                  _vendorSettings.category = category;
-                });
-              }
-            },
-          ),
-          ListTile(
-            title: RaisedButton(
-              color: Colors.blue,
-              onPressed: () {
-                FirebaseAuth.instance.currentUser().then((onValue) {
-                  print(onValue.uid);
-                  var vendorSettings = _vendorSettings.toJson();
-                  Firestore.instance
-                      .collection('vendorsettings')
-                      .document(onValue.uid)
-                      .setData(vendorSettings)
-                      .then((e) {
-                    print('done');
-                  }).catchError((e) {
-                    print(e);
-                  });
-                });
-              },
-              child: Text(
-                'Save',
-                style: TextStyle(color: Colors.white),
               ),
             ),
-          )
-        ],
+            ListTile(
+              title: Text('Whatsapp Number'),
+              subtitle: Text(_vendorSettings.whatsappNo != null
+                  ? _vendorSettings.whatsappNo.isNotEmpty
+                      ? _vendorSettings.whatsappNo
+                      : 'Unspecified'
+                  : 'Unspecified'),
+              onTap: () async {
+                var whatsappNo = await navigateToSettingsPage(
+                    'Whatsapp No',
+                    _vendorSettings.whatsappNo != null
+                        ? _vendorSettings.whatsappNo.isNotEmpty
+                            ? _vendorSettings.whatsappNo
+                            : ''
+                        : '');
+                if (whatsappNo != null) {
+                  setState(() {
+                    _vendorSettings.whatsappNo = whatsappNo;
+                  });
+                  isChangedFlag = true;
+                }
+              },
+            ),
+            ListTile(
+              title: Text('Phone Number'),
+              subtitle: Text(_vendorSettings.phoneNo != null
+                  ? _vendorSettings.phoneNo.isNotEmpty
+                      ? _vendorSettings.phoneNo
+                      : 'Unspecified'
+                  : 'Unspecified'),
+              onTap: () async {
+                var phoneNo = await navigateToSettingsPage(
+                    'Phone No',
+                    _vendorSettings.phoneNo != null
+                        ? _vendorSettings.phoneNo.isNotEmpty
+                            ? _vendorSettings.phoneNo
+                            : ''
+                        : '');
+                if (phoneNo != null) {
+                  setState(() {
+                    _vendorSettings.phoneNo = phoneNo;
+                  });
+                  isChangedFlag = true;
+                }
+              },
+            ),
+            ListTile(
+              title: Text('Open in Waze'),
+              onTap: () {
+                openWazeLink().then((result) {
+                  print(result);
+                });
+              },
+            ),
+            ListTile(
+              title: Text('Default Category'),
+              subtitle: Text(_vendorSettings.category == null
+                  ? 'Unspecified'
+                  : _vendorSettings.category.isEmpty
+                      ? 'Unspecified'
+                      : _vendorSettings.category),
+              onTap: () async {
+                var category = await Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            CategoriesScreen(_vendorSettings.category),
+                        fullscreenDialog: true));
+                if (category != null) {
+                  setState(() {
+                    _vendorSettings.category = category;
+                  });
+                  isChangedFlag = true;
+                }
+              },
+            ),
+            ListTile(
+              title: RaisedButton(
+                color: Colors.blue,
+                onPressed: () {
+                  saveChanges();
+                },
+                child: Text(
+                  'Save',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
+      onWillPop: willPopScope,
     );
   }
 }

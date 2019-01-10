@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         future: FirebaseAuth.instance.currentUser(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return MyHomePage(title: 'Flutter Demo Home Page');
+            return MyHomePage(snapshot.data, title: 'Flutter Demo Home Page',);
           } else {
             return LoginPage();
           }
@@ -39,7 +39,9 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  final FirebaseUser _loggedInUser;
+
+  MyHomePage(this._loggedInUser,{Key key, this.title}) : super(key: key);
 
   final String title;
 
@@ -59,7 +61,7 @@ class LoginPage extends StatelessWidget {
             .then((signedInUser) {
           print('signed in');
           Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => MyHomePage()));
+              MaterialPageRoute(builder: (context) => MyHomePage(signedInUser)));
         });
       }).catchError((error) {
         print(error.message);
@@ -95,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
   DatabaseReference _dbRef;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  FirebaseUser loggedInUser;
+  //final FirebaseUser _loggedInUser;
   var businessDetails = <Vendors>[];
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
@@ -166,14 +168,14 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _dbRef = FirebaseDatabase.instance.reference().child('AnonUsers');
-    FirebaseAuth.instance.currentUser().then((user) {
+    /*FirebaseAuth.instance.currentUser().then((user) {
       if (user == null) {
       } else {
         setState(() {
           loggedInUser = user;
         });
       }
-    });
+    });*/
     //when the widget is build, then runs this callback
     WidgetsBinding.instance.addPostFrameCallback((_)=>_refreshIndicatorKey.currentState.show());
   }
@@ -232,12 +234,12 @@ class _MyHomePageState extends State<MyHomePage> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () {
-              print('${loggedInUser.uid}');
+              print('${widget._loggedInUser.uid}');
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) => VendorSettingsScreen(
                       currentLocation["latitude"],
                       currentLocation["longitude"],
-                      loggedInUser.uid)));
+                      widget._loggedInUser.uid)));
             },
           )
         ],
