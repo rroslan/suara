@@ -59,6 +59,15 @@ class VendorDetailsScreenState extends State<VendorDetailsScreen> {
     }
   }
 
+  void openFacebook() async{
+    var url = 'https://www.facebook.com/${_vendorDetails.fbURL}';
+    if(await canLaunch(url)){
+      await launch(url);
+    }else{
+      throw 'could not launch $url';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var businessName = _vendorDetails != null ? _vendorDetails.businessName == null ? 'Please wait...' : _vendorDetails.businessName : 'Please wait...';
@@ -140,6 +149,11 @@ class VendorDetailsScreenState extends State<VendorDetailsScreen> {
                       title: Text('Facebook'),
                       subtitle: Text('Look up'),
                       trailing: Image.asset('images/facebook.png',scale: 1.2,),
+                      onTap: (){
+                        if(_vendorDetails.fbURL != null){
+                          openFacebook();
+                        }
+                      },
                     ),
                     ListTile(
                       title: Text('Waze'),
