@@ -163,12 +163,16 @@ class _MyHomePageState extends State<MyHomePage> {
         .map((key) => Firestore.instance.document('vendorsettings/$key'))
         .toList();
 
-    setState(() {
-      businessDetails = [];
-    });
+    if (mounted) {
+      setState(() {
+        businessDetails = [];
+      });
+    }
 
     for (var ref in listOfRefs) {
-      ref.snapshots().forEach((data){
+      var subscription = ref.snapshots().listen((data) {});
+
+      subscription.onData((data) {
         var vendor = VendorSettings.fromJson(data.data);
         final distance = new Distance();
         final km = distance.as(
@@ -179,6 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
           businessDetails.add(Vendors(
               vendor.uid, vendor.businessName, vendor.businessDesc, '$km km'));
         });
+        subscription.cancel();
       });
     }
 
@@ -269,47 +274,58 @@ class _MyHomePageState extends State<MyHomePage> {
       body: RefreshIndicator(
         key: _refreshIndicatorKey,
         onRefresh: manipulateDataTable,
-        child: ListView(
-          children: <Widget>[
-            SingleChildScrollView(
-              child: DataTable(
-                columns: [
-                  DataColumn(
-                      label: Expanded(
-                    child: Text('Name & Description'),
-                  )),
-                  DataColumn(
-                      label: Expanded(
-                        child: Text('Distance'),
-                      ),
-                      numeric: true)
-                ],
-                rows: businessDetails
-                    .map((business) => DataRow(cells: [
-                          DataCell(
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: <Widget>[
-                                  Container(
-                                      child: Text(
-                                    business.businessName,
-                                  )),
-                                  Text(business.businessDesc)
-                                ],
-                              ), onTap: () {
-                            var route = MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                    VendorDetailsScreen());
-                            Navigator.of(context).push(route);
-                          }),
-                          DataCell(Text(business.distance))
-                        ]))
-                    .toList(),
-              ),
-            )
-          ],
-        ),
+        child: businessDetails.length > 0
+            ? ListView(
+                children: businessDetails
+                    .map(
+                      (business) => Card(
+                            child: InkWell(
+                              onTap: () {
+                                var route = MaterialPageRoute(
+                                    builder: (BuildContext context) =>
+                                        VendorDetailsScreen(business.uid));
+                                Navigator.of(context).push(route);
+                              },
+                              child: ListTile(
+                                title: Text(
+                                  business.businessName,
+                                  style: TextStyle(fontSize: 20.0),
+                                ),
+                                subtitle: Text(business.businessDesc),
+                                trailing: FittedBox(
+                                  child: Column(
+                                    children: <Widget>[
+                                      Text(business.distance),
+                                      Padding(
+                                        padding: EdgeInsets.only(top: 10.0),
+                                      ),
+                                      Image.asset('images/distance.png')
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                    )
+                    .toList())
+            : Center(
+                child: FittedBox(
+                child: Column(
+                  children: <Widget>[
+                    Image.asset(
+                      'images/notfound.png',
+                      color: Colors.grey,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 20.0),
+                    ),
+                    Text(
+                      'No data to display.',
+                      style: TextStyle(color: Colors.grey),
+                    )
+                  ],
+                ),
+              )),
       ),
     );
   }
