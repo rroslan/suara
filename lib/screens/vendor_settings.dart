@@ -21,7 +21,6 @@ class VendorSettingsScreen extends StatefulWidget {
 
 class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   bool isChangedFlag = false;
-  static const platform = const MethodChannel('saura.biz/deeplinks');
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
   VendorSettings _vendorSettings;
   final _categoriesList = <String>[
@@ -39,17 +38,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
             ChangeVendorSettingPage(title, initialValue)));
   }
 
-  Future<dynamic> openWazeLink() async {
-    try {
-      var result = await platform.invokeMethod('openWazeClientApp', {
-        'latitude': '${_vendorSettings.location['latitude']}',
-        'longitude': '${_vendorSettings.location['longitude']}'
-      });
-      print(result);
-    } catch (error) {
-      print(error);
-    }
-  }
+  
 
   @override
   void initState() {
@@ -497,14 +486,6 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                   });
                   isChangedFlag = true;
                 }
-              },
-            ),
-            ListTile(
-              title: Text('Open in Waze'),
-              onTap: () {
-                openWazeLink().then((result) {
-                  print(result);
-                });
               },
             ),
             ListTile(
