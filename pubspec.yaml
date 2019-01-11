@@ -28,6 +28,7 @@ dependencies:
   shared_preferences: ^0.4.3
   flutter_geofire: ^0.0.4
   latlong: ^0.6.1
+  url_launcher: ^4.0.3
 
 
 dev_dependencies:
