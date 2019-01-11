@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:suara/models/vendor_settings.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class VendorDetailsScreen extends StatefulWidget {
   final _loggedInUserId;
@@ -29,6 +30,33 @@ class VendorDetailsScreenState extends State<VendorDetailsScreen> {
       });
       subscription.cancel();
     });
+  }
+
+  void makePhoneCall() async{
+    var url = 'tel:${_vendorDetails.phoneNo}';
+    if(await canLaunch(url)){
+      await launch(url);
+    }else{
+      throw 'could not launch $url';
+    }
+  }
+
+  void sendSMS() async{
+    var url = 'sms:${_vendorDetails.phoneNo}';
+    if(await canLaunch(url)){
+      await launch(url);
+    }else{
+      throw 'could not launch $url';
+    }
+  }
+
+  void openWhatsapp() async{
+    var url = 'https://api.whatsapp.com/send?phone=${_vendorDetails.whatsappNo}';
+    if(await canLaunch(url)){
+      await launch(url);
+    }else{
+      throw 'could not launch $url';
+    }
   }
 
   @override
@@ -81,17 +109,32 @@ class VendorDetailsScreenState extends State<VendorDetailsScreen> {
                     ListTile(
                       title: Text('Call'),
                       subtitle: Text('Make a phone call'),
-                      trailing: Icon(Icons.phone),
+                      trailing: Icon(Icons.phone,color: Colors.black,),
+                      onTap: (){
+                        if(_vendorDetails.phoneNo != null){
+                          makePhoneCall();
+                        }
+                      },
                     ),
                     ListTile(
                       title: Text('SMS'),
                       subtitle: Text('Send a message'),
-                      trailing: Icon(Icons.sms),
+                      trailing: Icon(Icons.sms,color: Colors.black,),
+                      onTap: (){
+                        if(_vendorDetails.phoneNo != null){
+                          sendSMS();
+                        }
+                      },
                     ),
                     ListTile(
                       title: Text('Whatsapp'),
                       subtitle: Text('Open up'),
                       trailing: Image.asset('images/whatsapp.png',scale: 1.2,),
+                      onTap: (){
+                        if(_vendorDetails.whatsappNo != null){
+                          openWhatsapp();
+                        }
+                      },
                     ),
                     ListTile(
                       title: Text('Facebook'),
