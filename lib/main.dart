@@ -13,6 +13,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:suara/screens/vendor_settings.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:latlong/latlong.dart';
 
 void main() => runApp(MyApp());
 
@@ -119,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ? 20.0
         : _currentIndex == 1.0
             ? 700.0
-            : _currentIndex == 2 ? 1.0 : _currentIndex == 3 ? 10.0 : 10.0;
+            : _currentIndex == 2 ? 30.0 : _currentIndex == 3 ? 10.0 : 10.0;
 
     await Geofire.initialize('locations/$path');
 
@@ -137,9 +138,11 @@ class _MyHomePageState extends State<MyHomePage> {
     for (var ref in listOfRefs) {
       ref.snapshots().listen((data) {
         var vendor = VendorSettings.fromJson(data.data);
+        final distance = new Distance();
+        final km = distance.as(LengthUnit.Kilometer, LatLng(vendor.location['latitude'], vendor.location['longitude']), LatLng(currentLocation['latitude'], currentLocation['longitude']));
         setState(() {
           businessDetails.add(Vendors(
-              vendor.uid,vendor.businessName, vendor.businessDesc, '${radiusInKm.toInt()} km'));
+              vendor.uid,vendor.businessName, vendor.businessDesc, '$km km'));
         });
       });
     }
