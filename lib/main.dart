@@ -29,7 +29,10 @@ class MyApp extends StatelessWidget {
         future: FirebaseAuth.instance.currentUser(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return MyHomePage(snapshot.data, title: 'Flutter Demo Home Page',);
+            return MyHomePage(
+              snapshot.data,
+              title: 'Flutter Demo Home Page',
+            );
           } else {
             return LoginPage();
           }
@@ -42,7 +45,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   final FirebaseUser _loggedInUser;
 
-  MyHomePage(this._loggedInUser,{Key key, this.title}) : super(key: key);
+  MyHomePage(this._loggedInUser, {Key key, this.title}) : super(key: key);
 
   final String title;
 
@@ -61,8 +64,8 @@ class LoginPage extends StatelessWidget {
                 idToken: googleKey.idToken, accessToken: googleKey.accessToken)
             .then((signedInUser) {
           print('signed in');
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => MyHomePage(signedInUser)));
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) => MyHomePage(signedInUser)));
         });
       }).catchError((error) {
         print(error.message);
@@ -103,10 +106,39 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
 
+  Future<bool> showLocationNullValidationDialog() => showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+            title: Text('Location not found'),
+            content: Text(
+                'The current location has not been set. Do you want to get the location and try again?'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('NO'),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+              ),
+              FlatButton(
+                child: Text('YES'),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+            ],
+          ));
+
   Future<void> manipulateDataTable() async {
-    if(currentLocation.values.length == 0){
-      return;
+    if (currentLocation.values.length == 0) {
+      var result = await showLocationNullValidationDialog();
+      if (result) {
+        currentLocation = await location.getLocation();
+      } else {
+        return;
+      }
     }
+
     var path = _currentIndex == 0
         ? 'Delivery'
         : _currentIndex == 1
@@ -136,34 +168,20 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     for (var ref in listOfRefs) {
-      ref.snapshots().listen((data) {
+      ref.snapshots().forEach((data){
         var vendor = VendorSettings.fromJson(data.data);
         final distance = new Distance();
-        final km = distance.as(LengthUnit.Kilometer, LatLng(vendor.location['latitude'], vendor.location['longitude']), LatLng(currentLocation['latitude'], currentLocation['longitude']));
+        final km = distance.as(
+            LengthUnit.Kilometer,
+            LatLng(vendor.location['latitude'], vendor.location['longitude']),
+            LatLng(currentLocation['latitude'], currentLocation['longitude']));
         setState(() {
           businessDetails.add(Vendors(
-              vendor.uid,vendor.businessName, vendor.businessDesc, '$km km'));
+              vendor.uid, vendor.businessName, vendor.businessDesc, '$km km'));
         });
       });
     }
 
-    /*Firestore.instance
-        .collection('vendorsettings')
-        .where('uid', arrayContains: listOfKeys)
-        .snapshots()
-        .listen((data) {
-          if(data.documents.length > 0){
-            for(var doc in data.documents){
-              print(doc);
-            }
-          }
-        });*/
-
-    //Future<dynamic> futures = listOfKeys.map((key)=>firebaseDbRef.child('path')).toList();
-    /*var tempList = listOfKeys.map((key) => Vendors(key, key, '5')).toList();
-    setState(() {
-      businessDetails = tempList;
-    });*/
     print(listOfKeys.length);
   }
 
@@ -180,7 +198,8 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     });*/
     //when the widget is build, then runs this callback
-    WidgetsBinding.instance.addPostFrameCallback((_)=>_refreshIndicatorKey.currentState.show());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _refreshIndicatorKey.currentState.show());
   }
 
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
@@ -255,19 +274,30 @@ class _MyHomePageState extends State<MyHomePage> {
             SingleChildScrollView(
               child: DataTable(
                 columns: [
-                  DataColumn(label: Expanded(child: Text('Name & Description'),)),
-                  DataColumn(label: Expanded(child: Text('Distance'),), numeric: true)
+                  DataColumn(
+                      label: Expanded(
+                    child: Text('Name & Description'),
+                  )),
+                  DataColumn(
+                      label: Expanded(
+                        child: Text('Distance'),
+                      ),
+                      numeric: true)
                 ],
                 rows: businessDetails
                     .map((business) => DataRow(cells: [
-                          DataCell(Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: <Widget>[
-                              Container(child: Text(business.businessName,)),
-                              Text(business.businessDesc)
-                            ],
-                          ), onTap: () {
+                          DataCell(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: <Widget>[
+                                  Container(
+                                      child: Text(
+                                    business.businessName,
+                                  )),
+                                  Text(business.businessDesc)
+                                ],
+                              ), onTap: () {
                             var route = MaterialPageRoute(
                                 builder: (BuildContext context) =>
                                     VendorDetailsScreen());
