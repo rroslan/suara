@@ -204,7 +204,10 @@ class _MyHomePageState extends State<MyHomePage> {
     });*/
     //when the widget is build, then runs this callback
     WidgetsBinding.instance
-        .addPostFrameCallback((_) => _refreshIndicatorKey.currentState.show());
+        .addPostFrameCallback((_) async {
+          currentLocation = await location.getLocation();
+          _refreshIndicatorKey.currentState.show();
+        });
   }
 
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
@@ -224,15 +227,15 @@ class _MyHomePageState extends State<MyHomePage> {
         type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.access_time), title: Text('Delivery')),
+              icon: Image.asset('images/delivery.png'), title: Text('Delivery')),
           BottomNavigationBarItem(
-              icon: Icon(Icons.access_time), title: Text('Learn')),
+              icon: Image.asset('images/learn.png'), title: Text('Learn')),
           BottomNavigationBarItem(
-              icon: Icon(Icons.access_time), title: Text('Service')),
+              icon: Image.asset('images/service.png'), title: Text('Service')),
           BottomNavigationBarItem(
-              icon: Icon(Icons.access_time), title: Text('Sell')),
+              icon: Image.asset('images/sell.png'), title: Text('Sell')),
           BottomNavigationBarItem(
-              icon: Icon(Icons.access_time), title: Text('Rent')),
+              icon: Image.asset('images/rent.png'), title: Text('Rent')),
         ],
       ),
       appBar: AppBar(
