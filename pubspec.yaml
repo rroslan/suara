@@ -54,6 +54,11 @@ flutter:
    - images/whatsapp.png
    - images/facebook.png
    - images/waze.png
+   - images/delivery.png
+   - images/learn.png
+   - images/sell.png
+   - images/service.png
+   - images/rent.png
   #  - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
