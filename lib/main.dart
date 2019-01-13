@@ -206,6 +206,9 @@ class _MyHomePageState extends State<MyHomePage> {
     WidgetsBinding.instance
         .addPostFrameCallback((_) async {
           currentLocation = await location.getLocation();
+          Clipboard.setData(ClipboardData(
+                text:
+                    '${currentLocation['latitude']},${currentLocation['longitude']}'));
           _refreshIndicatorKey.currentState.show();
         });
   }
@@ -248,7 +251,7 @@ class _MyHomePageState extends State<MyHomePage> {
             manipulateDataTable();
             Clipboard.setData(ClipboardData(
                 text:
-                    'Lat: ${currentLocation['latitude']} | Long: ${currentLocation['longitude']}'));
+                    '${currentLocation['latitude']},${currentLocation['longitude']}'));
             await setLocation(
                 currentLocation['latitude'], currentLocation['longitude']);
             print('location set in shared pref');
