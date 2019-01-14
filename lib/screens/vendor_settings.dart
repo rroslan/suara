@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart';
-import 'package:suara/common/common.dart';
 import 'package:suara/models/vendor_settings.dart';
 import 'package:suara/screens/payment_topup.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
+import 'package:suara/screens/vendor_settings/category_settings_page.dart';
+import 'package:suara/screens/vendor_settings/location_settings_page.dart';
+import 'package:suara/screens/vendor_settings/normal_settings_page.dart';
 
 class VendorSettingsScreen extends StatefulWidget {
   final double _latitude;
@@ -31,14 +32,24 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
     'Rent'
   ];
 
-  Future<dynamic> navigateToSettingsPage(String title, initialValue) {
+  Future<dynamic> navigateToSettingsPage(
+      String title, initialValue, bool isChecked) {
     return Navigator.of(context).push(MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (BuildContext context) =>
-            ChangeVendorSettingPage(title, initialValue)));
+        builder: (BuildContext context) {
+          if (title.toLowerCase() == 'business name' ||
+              title.toLowerCase() == 'business description' ||
+              title.toLowerCase() == 'fb page url' ||
+              title.toLowerCase() == 'whatsapp no' ||
+              title.toLowerCase() == 'phone no') {
+            return NormalSettingsPage(title, initialValue);
+          } else if (title.toLowerCase() == 'default category') {
+            return CategoriesSettingsPage(_vendorSettings.category);
+          } else {
+            return LocationSettingsPage(title, initialValue, isChecked);
+          }
+        }));
   }
-
-  
 
   @override
   void initState() {
@@ -240,11 +251,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                   var result = await showCategoryNullValidationDialog();
 
                   if (result) {
-                    var category = await Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                CategoriesScreen(_vendorSettings.category),
-                            fullscreenDialog: true));
+                    var category = await navigateToSettingsPage(
+                        'default category', _vendorSettings.category, false);
                     if (category != null) {
                       setState(() {
                         _vendorSettings.category = category;
@@ -279,7 +287,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                                       _scaffoldKey.currentState,
                                       'Saving changes...');
                                   await saveChanges();
-                                  _scaffoldKey.currentState.hideCurrentSnackBar();
+                                  _scaffoldKey.currentState
+                                      .hideCurrentSnackBar();
                                   Navigator.of(context).pop(true);
                                 },
                               )
@@ -362,7 +371,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                     'Business Name',
                     _vendorSettings.businessName != null
                         ? _vendorSettings.businessName
-                        : '');
+                        : '',
+                    false);
                 if (businessName != null) {
                   setState(() {
                     _vendorSettings.businessName = businessName;
@@ -381,7 +391,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                     'Business Description',
                     _vendorSettings.businessDesc != null
                         ? _vendorSettings.businessDesc
-                        : '');
+                        : '',
+                    false);
                 if (businessDesc != null) {
                   setState(() {
                     _vendorSettings.businessDesc = businessDesc;
@@ -396,8 +407,10 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                   ? _vendorSettings.fbURL
                   : 'Unspecified'),
               onTap: () async {
-                var fbURL = await navigateToSettingsPage('FB Page URL',
-                    _vendorSettings.fbURL != null ? _vendorSettings.fbURL : '');
+                var fbURL = await navigateToSettingsPage(
+                    'FB Page URL',
+                    _vendorSettings.fbURL != null ? _vendorSettings.fbURL : '',
+                    false);
                 if (fbURL != null) {
                   setState(() {
                     _vendorSettings.fbURL = fbURL;
@@ -415,31 +428,113 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                 var location = await navigateToSettingsPage(
                     'Location',
                     _vendorSettings.location != null
-                        ? '${_vendorSettings.location['latitude']}|${_vendorSettings.location['longitude']}'
-                        : null);
+                        ? '${_vendorSettings.location['latitude']}|${_vendorSettings.location['longitude']}|${_vendorSettings.isLoc1Def}'
+                        : null,
+                    _vendorSettings.isLoc1Def);
                 if (location != null) {
+                  var tempLoc = {
+                    'latitude': location['latitude'],
+                    'longitude': location['longitude']
+                  };
+                  var isChecked = location['isChecked'];
                   setState(() {
-                    _vendorSettings.location = location;
+                    _vendorSettings.location = tempLoc;
+                    _vendorSettings.isLoc1Def = isChecked;
                   });
                   isChangedFlag = true;
                 }
               },
-              trailing: IconButton(
-                icon: Icon(Icons.pin_drop),
-                onPressed: () async {
-                  var currentLocation = await Location().getLocation();
-                  Clipboard.setData(ClipboardData(
-                      text:
-                          'Lat: ${currentLocation['latitude']} | Long: ${currentLocation['longitude']}'));
+              trailing: FittedBox(
+                child: Flex(
+                  direction: Axis.horizontal,
+                  children: <Widget>[
+                    _vendorSettings.isLoc1Def
+                        ? Tooltip(
+                            message: 'Default location',
+                            child: Icon(
+                              Icons.done,
+                              color: Colors.green,
+                            ),
+                          )
+                        : Container(),
+                    IconButton(
+                      icon: Icon(Icons.pin_drop),
+                      onPressed: () async {
+                        var currentLocation = await Location().getLocation();
+                        Clipboard.setData(ClipboardData(
+                            text:
+                                'Lat: ${currentLocation['latitude']} | Long: ${currentLocation['longitude']}'));
 
+                        setState(() {
+                          _vendorSettings.location = {
+                            'latitude': currentLocation['latitude'],
+                            'longitude': currentLocation['longitude']
+                          };
+                        });
+                        isChangedFlag = true;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            ListTile(
+              title: Text('Location 2'),
+              subtitle: Text(_vendorSettings.location2 != null
+                  ? 'Lat: ${_vendorSettings.location2['latitude']}  |  Long: ${_vendorSettings.location2['longitude']}'
+                  : 'Lat: 0.0000  |  Long: 0.0000'),
+              onTap: () async {
+                var location = await navigateToSettingsPage(
+                    'Location 2',
+                    _vendorSettings.location2 != null
+                        ? '${_vendorSettings.location2['latitude']}|${_vendorSettings.location2['longitude']}|${_vendorSettings.isLoc1Def}'
+                        : null,
+                    _vendorSettings.isLoc1Def);
+                if (location != null) {
+                  var tempLoc = {
+                    'latitude': location['latitude'],
+                    'longitude': location['longitude']
+                  };
+                  var isChecked = location['isChecked'];
                   setState(() {
-                    _vendorSettings.location = {
-                      'latitude': currentLocation['latitude'],
-                      'longitude': currentLocation['longitude']
-                    };
+                    _vendorSettings.location2 = tempLoc;
+                    _vendorSettings.isLoc1Def = !isChecked;
                   });
                   isChangedFlag = true;
-                },
+                }
+              },
+              trailing: FittedBox(
+                child: Flex(
+                  direction: Axis.horizontal,
+                  children: <Widget>[
+                    !_vendorSettings.isLoc1Def
+                        ? Tooltip(
+                            message: 'Default location',
+                            child: Icon(
+                              Icons.done,
+                              color: Colors.green,
+                            ),
+                          )
+                        : Container(),
+                    IconButton(
+                      icon: Icon(Icons.pin_drop),
+                      onPressed: () async {
+                        var currentLocation = await Location().getLocation();
+                        Clipboard.setData(ClipboardData(
+                            text:
+                                'Lat: ${currentLocation['latitude']} | Long: ${currentLocation['longitude']}'));
+
+                        setState(() {
+                          _vendorSettings.location2 = {
+                            'latitude': currentLocation['latitude'],
+                            'longitude': currentLocation['longitude']
+                          };
+                        });
+                        isChangedFlag = true;
+                      },
+                    )
+                  ],
+                ),
               ),
             ),
             ListTile(
@@ -456,7 +551,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                         ? _vendorSettings.whatsappNo.isNotEmpty
                             ? _vendorSettings.whatsappNo
                             : ''
-                        : '');
+                        : '',
+                    false);
                 if (whatsappNo != null) {
                   setState(() {
                     _vendorSettings.whatsappNo = whatsappNo;
@@ -479,7 +575,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                         ? _vendorSettings.phoneNo.isNotEmpty
                             ? _vendorSettings.phoneNo
                             : ''
-                        : '');
+                        : '',
+                    false);
                 if (phoneNo != null) {
                   setState(() {
                     _vendorSettings.phoneNo = phoneNo;
@@ -496,11 +593,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                       ? 'Unspecified'
                       : _vendorSettings.category),
               onTap: () async {
-                var category = await Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            CategoriesScreen(_vendorSettings.category),
-                        fullscreenDialog: true));
+                var category = await navigateToSettingsPage(
+                    'default category', _vendorSettings.category, false);
                 if (category != null) {
                   setState(() {
                     _vendorSettings.category = category;
@@ -525,150 +619,6 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
         ),
       ),
       onWillPop: willPopScope,
-    );
-  }
-}
-
-class ChangeVendorSettingPage extends StatelessWidget {
-  final String _appBarTitle;
-  final String _initialValue;
-  final TextEditingController _txt1 = TextEditingController(text: '');
-  final TextEditingController _txt2 = TextEditingController(text: '');
-
-  ChangeVendorSettingPage(this._appBarTitle, this._initialValue);
-
-  @override
-  Widget build(BuildContext context) {
-    _txt1.text = _appBarTitle.toString() == 'Location'
-        ? _initialValue != null ? _initialValue.split('|')[0] : ''
-        : _initialValue;
-    _txt2.text = _appBarTitle.toString() == 'Location'
-        ? _initialValue != null ? _initialValue.split('|')[1] : ''
-        : null;
-
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(_appBarTitle),
-          actions: <Widget>[
-            FlatButton(
-              child: Text(
-                'SAVE',
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: () {
-                dynamic returnVal = _appBarTitle.toLowerCase() == 'location'
-                    ? {'latitude': _txt1.text, 'longitude': _txt2.text}
-                    : _txt1.text;
-                Navigator.of(context).pop(returnVal);
-              },
-            )
-          ],
-        ),
-        body: ListView(children: <Widget>[
-          ListTile(
-            title: _appBarTitle.toLowerCase() == 'business description'
-                ? TextField(
-                    controller: _txt1,
-                    autofocus: true,
-                    maxLines: 10,
-                    decoration: InputDecoration(labelText: 'Enter a value'),
-                  )
-                : _appBarTitle.toLowerCase() == 'location'
-                    ? Column(
-                        children: <Widget>[
-                          TextField(
-                            controller: _txt1,
-                            autofocus: true,
-                            decoration:
-                                InputDecoration(labelText: 'Enter latitude'),
-                          ),
-                          TextField(
-                            controller: _txt2,
-                            autofocus: true,
-                            decoration:
-                                InputDecoration(labelText: 'Enter longitude'),
-                          )
-                        ],
-                      )
-                    : TextField(
-                        controller: _txt1,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                            labelText: 'Enter a value',
-                            prefix: _appBarTitle.toLowerCase() == 'fb page url'
-                                ? Container(
-                                    child: Text('http://m.facebook.com/'))
-                                : null),
-                      ),
-          )
-        ]));
-  }
-}
-
-class CategoriesScreen extends StatefulWidget {
-  final String _initialValue;
-
-  CategoriesScreen(this._initialValue);
-
-  @override
-  State<StatefulWidget> createState() => CategoriesScreenState();
-}
-
-class CategoriesScreenState extends State<CategoriesScreen> {
-  final categoriesList = <String>[
-    'Delivery',
-    'Learn',
-    'Service',
-    'Sell',
-    'Rent'
-  ];
-
-  String _selectedValue = '';
-
-  @override
-  void initState() {
-    super.initState();
-    setState(() {
-      _selectedValue = widget._initialValue == null
-          ? categoriesList[0]
-          : widget._initialValue.isEmpty
-              ? categoriesList[0]
-              : widget._initialValue;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Choose a category'),
-        actions: <Widget>[
-          FlatButton(
-            child: Text(
-              'SAVE',
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop(_selectedValue);
-            },
-          )
-        ],
-      ),
-      body: ListView(
-        children: categoriesList
-            .map((cat) => RadioListTile(
-                  groupValue: _selectedValue,
-                  title: Text(cat),
-                  value: cat,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedValue = value;
-                    });
-                    print(value);
-                  },
-                ))
-            .toList(),
-      ),
     );
   }
 }

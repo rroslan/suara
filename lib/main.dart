@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:suara/common/common.dart';
-import 'package:suara/models/anon_user.dart';
 import 'package:suara/models/vendor_settings.dart';
 import 'package:suara/models/vendors.dart';
-import 'package:suara/screens/phone_login.dart';
 import 'package:suara/screens/vendor_details.dart';
 import 'package:location/location.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:suara/screens/vendor_settings.dart';
@@ -25,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: /*MyHomePage(title: 'Flutter Demo Home Page')*/ FutureBuilder(
+      home: FutureBuilder(
         future: FirebaseAuth.instance.currentUser(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
@@ -98,10 +95,6 @@ class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
   var currentLocation = <String, double>{};
   var location = new Location();
-  DatabaseReference _dbRef;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  //final FirebaseUser _loggedInUser;
   var businessDetails = <Vendors>[];
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
@@ -193,15 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _dbRef = FirebaseDatabase.instance.reference().child('AnonUsers');
-    /*FirebaseAuth.instance.currentUser().then((user) {
-      if (user == null) {
-      } else {
-        setState(() {
-          loggedInUser = user;
-        });
-      }
-    });*/
+
     //when the widget is build, then runs this callback
     WidgetsBinding.instance
         .addPostFrameCallback((_) async {

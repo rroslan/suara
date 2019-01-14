@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> setLocation(double lat, double long) async {
@@ -16,18 +16,3 @@ Future<dynamic> getLocation() async {
 
   return location;
 }
-
-//commonly used for any error message that is given from firebase auth API
-/*SnackBar errorSnackBar(
-        GlobalKey<ScaffoldState> scaffoldKey, String errorMessage) =>
-    SnackBar(
-      content: Text(errorMessage),
-      backgroundColor: Colors.red,
-      action: SnackBarAction(
-        label: 'DISMISS',
-        textColor: Colors.white,
-        onPressed: () {
-          scaffoldKey.currentState.hideCurrentSnackBar();
-        },
-      ),
-    );*/
