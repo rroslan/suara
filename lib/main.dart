@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Suara',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
           if (snapshot.hasData) {
             return MyHomePage(
               snapshot.data,
-              title: 'Flutter Demo Home Page',
+              title: 'Suara',
             );
           } else {
             return LoginPage();
