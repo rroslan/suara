@@ -10,6 +10,8 @@ class VendorSettings{
   String category;
   bool isOnline;
   bool isLoc1Def;
+  int credits;
+  String salesContact;
 
   toJson(){
     return{
@@ -48,5 +50,7 @@ class VendorSettings{
     category = f['category'];
     isOnline = f['isOnline'] == null ? false : f['isOnline'];
     isLoc1Def = f['isLoc1Def'] == null ? true : f['isLoc1Def'];
+    credits = f['credits'];
+    salesContact = f['salesContact'];
   }
 }
