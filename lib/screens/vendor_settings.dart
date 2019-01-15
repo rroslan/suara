@@ -160,15 +160,42 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           ));
 
   Future<void> saveChanges() async {
+    //before saving changes, checking if the vendor is online
+    //if online: go offline, save changes and auto online
+    //if offline: save changes and manual online
     print(_vendorSettings.uid);
     var vendorSettings = _vendorSettings.toJson();
+
+    var tempOnlineStat = _vendorSettings.isOnline;
+
+    if (tempOnlineStat) {
+      await goOffline();
+      setState(() {
+        _vendorSettings.isOnline = false;
+      });
+    }
+
+    showProgressSnackBar(_scaffoldKey.currentState, 'Saving changes...');
     await Firestore.instance
         .collection('vendorsettings')
         .document(_vendorSettings.uid)
         .setData(vendorSettings);
-
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text('Save completed'),
+    ));
     isChangedFlag = false;
     print('done');
+
+    if (tempOnlineStat) {
+      goOnline();
+      setState(() {
+        _vendorSettings.isOnline = true;
+      });
+      await Firestore.instance
+          .collection('vendorsettings')
+          .document(_vendorSettings.uid)
+          .updateData({'isOnline': _vendorSettings.isOnline});
+    }
   }
 
   Future<bool> willPopScope() {
@@ -206,6 +233,106 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
     return result;
   }
 
+  void goOnline() async {
+    //checking if location is null. if it is, asking if want to fetch the current location
+    if (_vendorSettings.location['latitude'] == null ||
+        _vendorSettings.location['longitude'] == null) {
+      var result = await showLocationNullValidationDialog();
+
+      //getting location
+      if (result) {
+        showProgressSnackBar(
+            _scaffoldKey.currentState, 'Getting current location...');
+
+        //getting result
+        var currentLocation = await Location().getLocation();
+        setState(() {
+          _vendorSettings.location = {
+            'latitude': currentLocation['latitude'],
+            'longitude': currentLocation['longitude']
+          };
+        });
+        isChangedFlag = true;
+        _scaffoldKey.currentState.hideCurrentSnackBar();
+      } else {
+        return;
+      }
+    }
+
+    //checking if we have a default category selected
+    if (_vendorSettings.category == null) {
+      var result = await showCategoryNullValidationDialog();
+
+      if (result) {
+        var category = await navigateToSettingsPage(
+            'default category', _vendorSettings.category, false);
+        if (category != null) {
+          setState(() {
+            _vendorSettings.category = category;
+          });
+          isChangedFlag = true;
+        }
+      } else {
+        return;
+      }
+    }
+
+    //before switching online, we need to save the user made changes to maintain the data consistency
+    if (isChangedFlag) {
+      var result = await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+                title: Text('Changes not saved'),
+                content:
+                    Text('There are unsaved changes. Do you want to save?'),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('NO'),
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                  ),
+                  FlatButton(
+                    child: Text('YES'),
+                    onPressed: () async {
+                      showProgressSnackBar(
+                          _scaffoldKey.currentState, 'Saving changes...');
+                      await saveChanges();
+                      _scaffoldKey.currentState.hideCurrentSnackBar();
+                      Navigator.of(context).pop(true);
+                    },
+                  )
+                ],
+              ));
+
+      if (result == false) {
+        return;
+      }
+    }
+
+    showProgressSnackBar(_scaffoldKey.currentState, 'Switching to online...');
+
+    //removing existing geofire entries
+    await removeExistingGeofireEntries();
+
+    //re-initializing the user selected category
+    await Geofire.initialize('locations/${_vendorSettings.category}');
+
+    print('logged in user Id: ${_vendorSettings.uid}');
+    bool response = await Geofire.setLocation(
+        _vendorSettings.uid,
+        _vendorSettings.location['latitude'],
+        _vendorSettings.location['longitude']);
+    print('geofire response: $response');
+  }
+
+  Future<void> goOffline() async {
+    showProgressSnackBar(_scaffoldKey.currentState, 'Going offline...');
+    //removing existing geofire entries
+    await removeExistingGeofireEntries();
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -221,106 +348,9 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
             inactiveThumbColor: Colors.grey,
             onChanged: (val) async {
               if (val) {
-                //checking if location is null. if it is, asking if want to fetch the current location
-                if (_vendorSettings.location['latitude'] == null ||
-                    _vendorSettings.location['longitude'] == null) {
-                  var result = await showLocationNullValidationDialog();
-
-                  //getting location
-                  if (result) {
-                    showProgressSnackBar(_scaffoldKey.currentState,
-                        'Getting current location...');
-
-                    //getting result
-                    var currentLocation = await Location().getLocation();
-                    setState(() {
-                      _vendorSettings.location = {
-                        'latitude': currentLocation['latitude'],
-                        'longitude': currentLocation['longitude']
-                      };
-                    });
-                    isChangedFlag = true;
-                    _scaffoldKey.currentState.hideCurrentSnackBar();
-                  } else {
-                    return;
-                  }
-                }
-
-                //checking if we have a default category selected
-                if (_vendorSettings.category == null) {
-                  var result = await showCategoryNullValidationDialog();
-
-                  if (result) {
-                    var category = await navigateToSettingsPage(
-                        'default category', _vendorSettings.category, false);
-                    if (category != null) {
-                      setState(() {
-                        _vendorSettings.category = category;
-                      });
-                      isChangedFlag = true;
-                    }
-                  } else {
-                    return;
-                  }
-                }
-
-                //before switching online, we need to save the user made changes to maintain the data consistency
-                if (isChangedFlag) {
-                  var result = await showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => AlertDialog(
-                            title: Text('Changes not saved'),
-                            content: Text(
-                                'There are unsaved changes. Do you want to save?'),
-                            actions: <Widget>[
-                              FlatButton(
-                                child: Text('NO'),
-                                onPressed: () {
-                                  Navigator.of(context).pop(false);
-                                },
-                              ),
-                              FlatButton(
-                                child: Text('YES'),
-                                onPressed: () async {
-                                  showProgressSnackBar(
-                                      _scaffoldKey.currentState,
-                                      'Saving changes...');
-                                  await saveChanges();
-                                  _scaffoldKey.currentState
-                                      .hideCurrentSnackBar();
-                                  Navigator.of(context).pop(true);
-                                },
-                              )
-                            ],
-                          ));
-
-                  if (result == false) {
-                    return;
-                  }
-                }
-
-                showProgressSnackBar(
-                    _scaffoldKey.currentState, 'Switching to online...');
-
-                //removing existing geofire entries
-                await removeExistingGeofireEntries();
-
-                //re-initializing the user selected category
-                await Geofire.initialize(
-                    'locations/${_vendorSettings.category}');
-
-                print('logged in user Id: ${_vendorSettings.uid}');
-                bool response = await Geofire.setLocation(
-                    _vendorSettings.uid,
-                    _vendorSettings.location['latitude'],
-                    _vendorSettings.location['longitude']);
-                print('geofire response: $response');
+                goOnline();
               } else {
-                showProgressSnackBar(
-                    _scaffoldKey.currentState, 'Going offline...');
-                //removing existing geofire entries
-                await removeExistingGeofireEntries();
+                goOffline();
               }
 
               await Firestore.instance
