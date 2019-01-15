@@ -22,8 +22,8 @@ class VendorSettings{
         'longitude':location['longitude']
       },
       'location2':{
-        'latitude':location2['latitude'],
-        'longitude':location2['longitude']
+        'latitude':location2 == null ? 0.0 : location2['latitude'],
+        'longitude':location2 == null ? 0.0 : location2['longitude']
       },
       'whatsappNo':whatsappNo,
       'phoneNo':phoneNo,
@@ -32,7 +32,9 @@ class VendorSettings{
       'isLoc1Def':isLoc1Def
     };
   }
-  VendorSettings(this.uid);
+  VendorSettings(this.uid){
+    isLoc1Def = true;
+  }
 
   VendorSettings.fromJson(dynamic f){
     uid = f['uid'];
