@@ -75,17 +75,50 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: RaisedButton(
-          color: Colors.red.shade700,
-          child: Text(
-            'Login with Google',
-            style: TextStyle(color: Colors.white),
+      body: Stack(
+        children: <Widget>[
+          Container(
+            height: double.infinity,
+            child: Image.asset(
+              'images/login_background.png',
+              alignment: Alignment.bottomRight,
+            ),
           ),
-          onPressed: () {
-            initiateGoogleLogin(context);
-          },
-        ),
+          Center(
+            child: FittedBox(
+              child: Column(
+                children: <Widget>[
+                  Image.asset('images/app_logo.png',width: 290.0,),
+                  Padding(
+                    padding: EdgeInsets.only(top: 20.0),
+                  ),
+                  Container(
+                    width: 150.0,
+                    height: 40.0,
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blue, width: 5.0)),
+                    child: InkWell(
+                      child: Container(
+                        color: Colors.blue,
+                        child: Center(
+                          child: Text(
+                            'Login with Google',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      onTap: () {
+                        initiateGoogleLogin(context);
+                      },
+                    ),
+                  )
+                ],
+              ),
+            ),
+          )
+        ],
       ),
     );
   }
@@ -188,14 +221,13 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     //when the widget is build, then runs this callback
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) async {
-          currentLocation = await location.getLocation();
-          Clipboard.setData(ClipboardData(
-                text:
-                    '${currentLocation['latitude']},${currentLocation['longitude']}'));
-          _refreshIndicatorKey.currentState.show();
-        });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      currentLocation = await location.getLocation();
+      Clipboard.setData(ClipboardData(
+          text:
+              '${currentLocation['latitude']},${currentLocation['longitude']}'));
+      _refreshIndicatorKey.currentState.show();
+    });
   }
 
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
@@ -215,7 +247,8 @@ class _MyHomePageState extends State<MyHomePage> {
         type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
-              icon: Image.asset('images/delivery.png'), title: Text('Delivery')),
+              icon: Image.asset('images/delivery.png'),
+              title: Text('Delivery')),
           BottomNavigationBarItem(
               icon: Image.asset('images/learn.png'), title: Text('Learn')),
           BottomNavigationBarItem(
