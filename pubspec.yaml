@@ -59,6 +59,8 @@ flutter:
    - images/sell.png
    - images/service.png
    - images/rent.png
+   - images/login_background.png
+   - images/app_logo.png
   #  - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
