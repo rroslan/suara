@@ -373,14 +373,14 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           actions: <Widget>[
             Row(
               children: <Widget>[
-                Text('Available Balance'),
+                Text('${_vendorSettings.credits} MYR'),
                 IconButton(
                   icon: Icon(Icons.payment),
                   tooltip: 'Buy credit',
                   onPressed: () {
                     var route = MaterialPageRoute(
                         builder: (BuildContext context) =>
-                            PaymentTopUpScreen());
+                            PaymentTopUpScreen(_vendorSettings.salesContact));
 
                     Navigator.of(context).push(route);
                   },
