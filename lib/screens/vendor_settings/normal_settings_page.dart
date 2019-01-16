@@ -40,7 +40,7 @@ class NormalSettingsPage extends StatelessWidget {
                     controller: _txt1,
                     autofocus: true,
                     decoration: InputDecoration(
-                        labelText: _appBarTitle.toLowerCase() == 'business name' ? 'Enter a business name' : _appBarTitle.toLowerCase() == 'fb page url' ? 'Enter an FB page URL' : _appBarTitle.toLowerCase() == 'whatsapp no' ? 'Enter a Whatsapp No' : 'Enter a phone number',
+                        labelText: _appBarTitle.toLowerCase() == 'business name' ? 'Enter a business name' : _appBarTitle.toLowerCase() == 'fb page url' ? 'Enter an FB page URL' : _appBarTitle.toLowerCase() == 'whatsapp no' ? 'Enter a Whatsapp No' : _appBarTitle.toLowerCase() == 'sales contact' ? 'Enter a Sales Contact Number' : 'Enter a phone number',
                         prefix: _appBarTitle.toLowerCase() == 'fb page url'
                             ? Container(child: Text('http://m.facebook.com/'))
                             : null),
