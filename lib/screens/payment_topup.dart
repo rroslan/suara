@@ -6,8 +6,8 @@ class PaymentTopUpScreen extends StatelessWidget {
 
   PaymentTopUpScreen(this._phoneNo);
 
-  void makePhoneCall() async {
-    var url = 'tel:$_phoneNo';
+  void makePhoneCall(String phoneNo) async {
+    var url = 'tel:$phoneNo';
     if (await canLaunch(url)) {
       await launch(url);
     } else {
@@ -53,7 +53,7 @@ class PaymentTopUpScreen extends StatelessWidget {
             ),
             onTap: () {
               if (_phoneNo != null) {
-                makePhoneCall();
+                makePhoneCall(_phoneNo);
               }
             },
           ),
@@ -81,6 +81,14 @@ class PaymentTopUpScreen extends StatelessWidget {
               if (_phoneNo != null) {
                 openWhatsapp();
               }
+            },
+          ),
+          ListTile(
+            trailing: Image.asset('images/support.png',scale: 3.0,),
+            title: Text('1-Tap Support'),
+            subtitle: Text('Tap to call'),
+            onTap: (){
+              makePhoneCall('+60102341562');
             },
           ),
         ],
