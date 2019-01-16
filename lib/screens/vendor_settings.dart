@@ -180,9 +180,11 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
         .collection('vendorsettings')
         .document(_vendorSettings.uid)
         .setData(vendorSettings);
+    _scaffoldKey.currentState.hideCurrentSnackBar();
     _scaffoldKey.currentState.showSnackBar(SnackBar(
       content: Text('Save completed'),
     ));
+    _scaffoldKey.currentState.hideCurrentSnackBar();
     isChangedFlag = false;
     print('done');
 
