@@ -1,3 +1,5 @@
+import 'package:suara/common/common.dart';
+
 class VendorSettings{
   String uid;
   String businessName;
@@ -31,7 +33,9 @@ class VendorSettings{
       'phoneNo':phoneNo,
       'category':category,
       'isOnline':isOnline,
-      'isLoc1Def':isLoc1Def
+      'isLoc1Def':isLoc1Def,
+      'credits':credits??initialCredit,
+      'salesContact':salesContact
     };
   }
   VendorSettings(this.uid){
@@ -51,7 +55,7 @@ class VendorSettings{
     category = f['category'];
     isOnline = f['isOnline'] == null ? false : f['isOnline'];
     isLoc1Def = f['isLoc1Def'] == null ? true : f['isLoc1Def'];
-    credits = f['credits'];
+    credits = f['credits'] ?? initialCredit;
     salesContact = f['salesContact'];
   }
 }
