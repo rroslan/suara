@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart';
+import 'package:suara/common/common.dart';
 import 'package:suara/models/vendor_settings.dart';
 import 'package:suara/screens/payment_topup.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
@@ -41,7 +42,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
               title.toLowerCase() == 'business description' ||
               title.toLowerCase() == 'fb page url' ||
               title.toLowerCase() == 'whatsapp no' ||
-              title.toLowerCase() == 'phone no') {
+              title.toLowerCase() == 'phone no' ||
+              title.toLowerCase() == 'sales contact') {
             return NormalSettingsPage(title, initialValue);
           } else if (title.toLowerCase() == 'default category') {
             return CategoriesSettingsPage(_vendorSettings.category);
@@ -198,6 +200,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           .document(_vendorSettings.uid)
           .updateData({'isOnline': _vendorSettings.isOnline});
     }
+    _scaffoldKey.currentState.hideCurrentSnackBar();
   }
 
   Future<bool> willPopScope() {
@@ -375,7 +378,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           actions: <Widget>[
             Row(
               children: <Widget>[
-                Text('${_vendorSettings.credits} MYR'),
+                Text('${_vendorSettings.credits ?? initialCredit} MYR'),
                 IconButton(
                   icon: Icon(Icons.payment),
                   tooltip: 'Buy credit',
@@ -630,6 +633,20 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
                 if (category != null) {
                   setState(() {
                     _vendorSettings.category = category;
+                  });
+                  isChangedFlag = true;
+                }
+              },
+            ),
+            ListTile(
+              title: Text('Sales Contact'),
+              subtitle: Text(_vendorSettings.salesContact ?? 'Unspecified'),
+              onTap: () async {
+                var contact = await navigateToSettingsPage(
+                    'Sales Contact', _vendorSettings.salesContact, false);
+                if (contact != null) {
+                  setState(() {
+                    _vendorSettings.salesContact = contact;
                   });
                   isChangedFlag = true;
                 }
