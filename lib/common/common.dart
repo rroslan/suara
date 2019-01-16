@@ -16,3 +16,5 @@ Future<dynamic> getLocation() async {
 
   return location;
 }
+
+final int initialCredit = 30;
