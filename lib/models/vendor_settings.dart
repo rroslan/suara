@@ -36,6 +36,7 @@ class VendorSettings{
   }
   VendorSettings(this.uid){
     isLoc1Def = true;
+    isOnline = false;
   }
 
   VendorSettings.fromJson(dynamic f){
