@@ -88,7 +88,10 @@ class LoginPage extends StatelessWidget {
             child: FittedBox(
               child: Column(
                 children: <Widget>[
-                  Image.asset('images/app_logo.png',width: 290.0,),
+                  Image.asset(
+                    'images/app_logo.png',
+                    width: 290.0,
+                  ),
                   Padding(
                     padding: EdgeInsets.only(top: 20.0),
                   ),
@@ -199,16 +202,19 @@ class _MyHomePageState extends State<MyHomePage> {
       var subscription = ref.snapshots().listen((data) {});
 
       subscription.onData((data) {
-        var vendor = VendorSettings.fromJson(data.data);
-        final distance = new Distance();
-        final km = distance.as(
-            LengthUnit.Kilometer,
-            LatLng(vendor.location['latitude'], vendor.location['longitude']),
-            LatLng(currentLocation['latitude'], currentLocation['longitude']));
-        setState(() {
-          businessDetails.add(Vendors(
-              vendor.uid, vendor.businessName, vendor.businessDesc, '$km km'));
-        });
+        if (data.data != null) {
+          var vendor = VendorSettings.fromJson(data.data);
+          final distance = new Distance();
+          final km = distance.as(
+              LengthUnit.Kilometer,
+              LatLng(vendor.location['latitude'], vendor.location['longitude']),
+              LatLng(
+                  currentLocation['latitude'], currentLocation['longitude']));
+          setState(() {
+            businessDetails.add(Vendors(vendor.uid, vendor.businessName,
+                vendor.businessDesc, '$km km'));
+          });
+        }
         subscription.cancel();
       });
     }
