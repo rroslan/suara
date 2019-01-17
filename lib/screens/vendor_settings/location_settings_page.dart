@@ -46,8 +46,8 @@ class LocationSettingsPageState extends State<LocationSettingsPage> {
               ),
               onPressed: () {
                 dynamic returnVal = {
-                  'latitude': _txt1.text,
-                  'longitude': _txt2.text,
+                  'latitude': double.parse(_txt1.text),
+                  'longitude': double.parse(_txt2.text),
                   'isChecked': _isChecked
                 };
                 Navigator.of(context).pop(returnVal);
