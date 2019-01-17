@@ -239,9 +239,29 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   }
 
   void goOnline() async {
-    //checking if location is null. if it is, asking if want to fetch the current location
-    if (_vendorSettings.location['latitude'] == null ||
-        _vendorSettings.location['longitude'] == null) {
+    //checking if the default location is null. if it is, asking if want to fetch the current location
+    var locResCheck = true;
+    if (_vendorSettings.isLoc1Def) {
+      if (_vendorSettings.location == null) {
+        locResCheck = false;
+      } else {
+        if (_vendorSettings.location['latitude'] == null ||
+            _vendorSettings.location['longitude'] == null) {
+          locResCheck = false;
+        }
+      }
+    } else {
+      if (_vendorSettings.location2 == null) {
+        locResCheck = false;
+      } else {
+        if (_vendorSettings.location2['latitude'] == null ||
+            _vendorSettings.location2['longitude'] == null) {
+          locResCheck = false;
+        }
+      }
+    }
+
+    if (locResCheck == false) {
       var result = await showLocationNullValidationDialog();
 
       //getting location
@@ -252,10 +272,17 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
         //getting result
         var currentLocation = await Location().getLocation();
         setState(() {
-          _vendorSettings.location = {
-            'latitude': currentLocation['latitude'],
-            'longitude': currentLocation['longitude']
-          };
+          if (_vendorSettings.isLoc1Def) {
+            _vendorSettings.location = {
+              'latitude': currentLocation['latitude'],
+              'longitude': currentLocation['longitude']
+            };
+          } else {
+            _vendorSettings.location2 = {
+              'latitude': currentLocation['latitude'],
+              'longitude': currentLocation['longitude']
+            };
+          }
         });
         isChangedFlag = true;
         _scaffoldKey.currentState.hideCurrentSnackBar();
@@ -325,10 +352,13 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
     await Geofire.initialize('locations/${_vendorSettings.category}');
 
     print('logged in user Id: ${_vendorSettings.uid}');
-    bool response = await Geofire.setLocation(
-        _vendorSettings.uid,
-        _vendorSettings.location['latitude'],
-        _vendorSettings.location['longitude']);
+    final double lat = _vendorSettings.isLoc1Def
+        ? _vendorSettings.location['latitude']
+        : _vendorSettings.location2['latitude'];
+    final double lon = _vendorSettings.isLoc1Def
+        ? _vendorSettings.location['longitude']
+        : _vendorSettings.location2['longitude'];
+    bool response = await Geofire.setLocation(_vendorSettings.uid, lat, lon);
     print('geofire response: $response');
   }
 
@@ -455,7 +485,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
               },
             ),
             ListTile(
-              title: Text('Location'),
+              title: Text('Location 1'),
               subtitle: Text(_vendorSettings.location != null
                   ? 'Lat: ${_vendorSettings.location['latitude']}  |  Long: ${_vendorSettings.location['longitude']}'
                   : 'Lat: 0.0000  |  Long: 0.0000'),
