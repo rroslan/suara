@@ -204,15 +204,19 @@ class _MyHomePageState extends State<MyHomePage> {
       subscription.onData((data) {
         if (data.data != null) {
           var vendor = VendorSettings.fromJson(data.data);
+          final double vendorLat = vendor.isLoc1Def ? vendor.location['latitude'] : vendor.location2['latitude'];
+          final double vendorLon = vendor.isLoc1Def ? vendor.location['longitude'] : vendor.location2['longitude'];
+          
           final distance = new Distance();
-          final km = distance.as(
-              LengthUnit.Kilometer,
-              LatLng(vendor.location['latitude'], vendor.location['longitude']),
+          final meters = distance.as(
+              LengthUnit.Meter,
+              LatLng(vendorLat, vendorLon),
               LatLng(
                   currentLocation['latitude'], currentLocation['longitude']));
+                  final distanceTxt = meters >= 1000 ? '${(meters/1000.0)}  km' : '$meters m';
           setState(() {
             businessDetails.add(Vendors(vendor.uid, vendor.businessName,
-                vendor.businessDesc, '$km km'));
+                vendor.businessDesc, distanceTxt));
           });
         }
         subscription.cancel();
