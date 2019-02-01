@@ -11,6 +11,7 @@ import 'package:suara/screens/vendor_settings.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(MyApp());
 
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Suara',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.green,
       ),
       home: FutureBuilder(
         future: FirebaseAuth.instance.currentUser(),
@@ -82,6 +83,7 @@ class LoginPage extends StatelessWidget {
             child: Image.asset(
               'images/login_background.png',
               alignment: Alignment.bottomRight,
+              color: Colors.green,
             ),
           ),
           Center(
@@ -91,6 +93,7 @@ class LoginPage extends StatelessWidget {
                   Image.asset(
                     'images/app_logo.png',
                     width: 290.0,
+                    color: Colors.green,
                   ),
                   Padding(
                     padding: EdgeInsets.only(top: 20.0),
@@ -99,10 +102,10 @@ class LoginPage extends StatelessWidget {
                     width: 150.0,
                     height: 40.0,
                     decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blue, width: 5.0)),
+                        border: Border.all(color: Colors.green, width: 5.0)),
                     child: InkWell(
                       child: Container(
-                        color: Colors.blue,
+                        color: Theme.of(context).primaryColor,
                         child: Center(
                           child: Text(
                             'Login with Google',
@@ -204,16 +207,21 @@ class _MyHomePageState extends State<MyHomePage> {
       subscription.onData((data) {
         if (data.data != null) {
           var vendor = VendorSettings.fromJson(data.data);
-          final double vendorLat = vendor.isLoc1Def ? vendor.location['latitude'] : vendor.location2['latitude'];
-          final double vendorLon = vendor.isLoc1Def ? vendor.location['longitude'] : vendor.location2['longitude'];
-          
+          final double vendorLat = vendor.isLoc1Def
+              ? vendor.location['latitude']
+              : vendor.location2['latitude'];
+          final double vendorLon = vendor.isLoc1Def
+              ? vendor.location['longitude']
+              : vendor.location2['longitude'];
+
           final distance = new Distance();
           final meters = distance.as(
               LengthUnit.Meter,
               LatLng(vendorLat, vendorLon),
               LatLng(
                   currentLocation['latitude'], currentLocation['longitude']));
-                  final distanceTxt = meters >= 1000 ? '${(meters/1000.0)}  km' : '$meters m';
+          final distanceTxt =
+              meters >= 1000 ? '${(meters / 1000.0)}  km' : '$meters m';
           setState(() {
             businessDetails.add(Vendors(vendor.uid, vendor.businessName,
                 vendor.businessDesc, distanceTxt));
@@ -276,6 +284,9 @@ class _MyHomePageState extends State<MyHomePage> {
           onPressed: () async {
             //getting the location
             currentLocation = await location.getLocation();
+            currentLocation['latitude'] = 6.887625;
+            currentLocation['longitude'] = 79.873456;
+
             manipulateDataTable();
             Clipboard.setData(ClipboardData(
                 text:
@@ -289,20 +300,49 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         ),
         actions: <Widget>[
-          FlatButton(
-            child: Text(
-              'Vendor Settings',
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: () {
-              print('${widget._loggedInUser.uid}');
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (BuildContext context) => VendorSettingsScreen(
-                      currentLocation["latitude"],
-                      currentLocation["longitude"],
-                      widget._loggedInUser.uid)));
+          PopupMenuButton(
+            itemBuilder: (context) => [
+                  PopupMenuItem(
+                    child: Text('Vendor Settings'),
+                    value: 'vndr_sttngs',
+                  ),
+                  PopupMenuItem(
+                    child: Text('TOS'),
+                    value: 'tos',
+                  ),
+                  PopupMenuItem(
+                    child: Text('Policy'),
+                    value: 'policy',
+                  ),
+                  PopupMenuItem(
+                    child: Text('Help'),
+                    value: 'help',
+                  ),
+                ],
+            onSelected: (selectedVal) {
+              switch (selectedVal) {
+                case 'vndr_sttngs':
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (BuildContext context) => VendorSettingsScreen(
+                          currentLocation["latitude"],
+                          currentLocation["longitude"],
+                          widget._loggedInUser.uid)));
+                  break;
+
+                case 'tos':
+                  launch('https://www.labuanservices.com/tos');
+                  break;
+
+                case 'policy':
+                  launch('https://www.labuanservices.com/policy');
+                  break;
+
+                case 'help':
+                  launch('https://www.labuanservices.com/help');
+                  break;
+              }
             },
-          )
+          ),
         ],
       ),
       body: RefreshIndicator(
