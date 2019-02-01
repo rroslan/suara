@@ -251,6 +251,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+  final TextEditingController _locationSearchText = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -267,19 +268,57 @@ class _MyHomePageState extends State<MyHomePage> {
         type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
-              icon: Image.asset('images/delivery.png'),
+              icon: Image.asset('images/delivery.png',height: bottomNavBarIconSize,),
               title: Text('Delivery')),
           BottomNavigationBarItem(
-              icon: Image.asset('images/learn.png'), title: Text('Learn')),
+              icon: Image.asset('images/learn.png',height: bottomNavBarIconSize,), title: Text('Learn')),
           BottomNavigationBarItem(
-              icon: Image.asset('images/service.png'), title: Text('Service')),
+              icon: Image.asset('images/service.png',height: bottomNavBarIconSize,), title: Text('Service')),
           BottomNavigationBarItem(
-              icon: Image.asset('images/sell.png'), title: Text('Sell')),
+              icon: Image.asset('images/sell.png',height: bottomNavBarIconSize,), title: Text('Sell')),
           BottomNavigationBarItem(
-              icon: Image.asset('images/rent.png'), title: Text('Rent')),
+              icon: Image.asset('images/rent.png',height: bottomNavBarIconSize,), title: Text('Rent')),
+          BottomNavigationBarItem(
+              icon: Image.asset('images/jobs.png',height: bottomNavBarIconSize,), title: Text('Jobs')),
         ],
       ),
       appBar: AppBar(
+        title: GestureDetector(
+          onTap: () async {
+            var prediction = await PlacesAutocomplete.show(
+                context: context,
+                apiKey: kPlacesAPIKey,
+                mode: Mode.overlay, // Mode.fullscreen
+                language: "en",
+                components: [Component(Component.country, 'my')]);
+
+            if (prediction != null) {
+              _locationSearchText.text = prediction.description;
+              var mapsPlaces = GoogleMapsPlaces(apiKey: kPlacesAPIKey);
+              var response =
+                  await mapsPlaces.getDetailsByPlaceId(prediction.placeId);
+              if (response != null) {
+                var lat = response.result.geometry.location.lat;
+                var long = response.result.geometry.location.lng;
+                print('Lat Long = $lat:$long');
+              }
+            } else {
+              _locationSearchText.text = '';
+            }
+          },
+          child: AbsorbPointer(
+            child: TextField(
+              style: TextStyle(color: Colors.white),
+              controller: _locationSearchText,
+              decoration: InputDecoration(
+                  //contentPadding: EdgeInsets.only(top: 15.0),
+                  border: InputBorder.none,
+                  //suffixIcon: Icon(Icons.search),
+                  hintText: 'Start typing a place',
+                  hintStyle: TextStyle(fontStyle: FontStyle.italic)),
+            ),
+          ),
+        ),
         leading: IconButton(
           icon: Icon(Icons.pin_drop),
           tooltip: 'Get locations',
@@ -320,10 +359,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Text('Help'),
                     value: 'help',
                   ),
-                  PopupMenuItem(
-                    child: Text('Places'),
-                    value: 'places',
-                  )
                 ],
             onSelected: (selectedVal) {
               switch (selectedVal) {
@@ -346,14 +381,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 case 'help':
                   launch('https://www.labuanservices.com/help');
                   break;
-                  
-                  case 'places':
-                  Future<Prediction> p = PlacesAutocomplete.show(
-                          context: context,
-                          apiKey: kPlacesAPIKey,
-                          mode: Mode.overlay, // Mode.fullscreen
-                          language: "fr",
-                          components: [new Component(Component.country, "fr")]);
               }
             },
           ),
