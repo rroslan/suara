@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_maps_webservice/places.dart';
 import 'package:suara/common/common.dart';
 import 'package:suara/models/vendor_settings.dart';
 import 'package:suara/models/vendors.dart';
 import 'package:suara/screens/vendor_details.dart';
-import 'package:location/location.dart';
+import 'package:location/location.dart' as loco;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:suara/screens/vendor_settings.dart';
@@ -12,6 +13,7 @@ import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
 
 void main() => runApp(MyApp());
 
@@ -133,7 +135,7 @@ class LoginPage extends StatelessWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
   var currentLocation = <String, double>{};
-  var location = new Location();
+  var location = new loco.Location();
   var businessDetails = <Vendors>[];
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
@@ -318,6 +320,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Text('Help'),
                     value: 'help',
                   ),
+                  PopupMenuItem(
+                    child: Text('Places'),
+                    value: 'places',
+                  )
                 ],
             onSelected: (selectedVal) {
               switch (selectedVal) {
@@ -340,6 +346,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 case 'help':
                   launch('https://www.labuanservices.com/help');
                   break;
+                  
+                  case 'places':
+                  Future<Prediction> p = PlacesAutocomplete.show(
+                          context: context,
+                          apiKey: kPlacesAPIKey,
+                          mode: Mode.overlay, // Mode.fullscreen
+                          language: "fr",
+                          components: [new Component(Component.country, "fr")]);
               }
             },
           ),
