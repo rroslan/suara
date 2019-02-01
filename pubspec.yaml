@@ -29,6 +29,7 @@ dependencies:
   flutter_geofire: ^0.0.4
   latlong: ^0.6.1
   url_launcher: ^4.0.3
+  flutter_google_places: 0.1.4+1
 
 
 dev_dependencies:
