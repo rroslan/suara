@@ -379,7 +379,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
             value: _vendorSettings.isOnline == null
                 ? false
                 : _vendorSettings.isOnline,
-            activeColor: Colors.green,
+            activeColor: Colors.yellow,
             inactiveThumbColor: Colors.grey,
             onChanged: (val) async {
               if (val) {
@@ -684,7 +684,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
             ),
             ListTile(
               title: RaisedButton(
-                color: Colors.blue,
+                color: Theme.of(context).primaryColor,
                 onPressed: () {
                   saveChanges();
                 },
