@@ -15,7 +15,8 @@ class CategoriesSettingsPageState extends State<CategoriesSettingsPage> {
     'Learn',
     'Service',
     'Sell',
-    'Rent'
+    'Rent',
+    'Jobs'
   ];
 
   String _selectedValue = '';
