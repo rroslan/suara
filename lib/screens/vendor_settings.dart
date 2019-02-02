@@ -30,7 +30,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
     'Learn',
     'Service',
     'Sell',
-    'Rent'
+    'Rent',
+    'Jobs'
   ];
 
   Future<dynamic> navigateToSettingsPage(
@@ -239,6 +240,18 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   }
 
   void goOnline() async {
+    //LOGIC: checking if credit policy is enabled. If true, decreasing credits by 1
+    if(_vendorSettings.creditPolicy){
+      //credits should not decrease each time the vendor comes online.
+      //should be only if he came online on a specific day
+
+      var today = DateTime.now();
+      if(!(_vendorSettings.lastOnline.year == today.year && _vendorSettings.lastOnline.month == today.month && _vendorSettings.lastOnline.day == today.day)){
+        _vendorSettings.credits--;
+        _vendorSettings.lastOnline = today;
+        Firestore.instance.collection('vendorsettings').document(_vendorSettings.uid).updateData({'credits':_vendorSettings.credits,'lastOnline':_vendorSettings.lastOnline});
+      }
+    }
     //checking if the default location is null. if it is, asking if want to fetch the current location
     var locResCheck = true;
     if (_vendorSettings.isLoc1Def) {
