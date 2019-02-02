@@ -134,7 +134,7 @@ class LoginPage extends StatelessWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
-  var currentLocation = <String, double>{};
+  var _currentLocation = <String, double>{};
   var location = new loco.Location();
   var businessDetails = <Vendors>[];
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
@@ -164,10 +164,10 @@ class _MyHomePageState extends State<MyHomePage> {
           ));
 
   Future<void> manipulateDataTable() async {
-    if (currentLocation.values.length == 0) {
+    if (_currentLocation.values.length == 0) {
       var result = await showLocationNullValidationDialog();
       if (result) {
-        currentLocation = await location.getLocation();
+        _currentLocation = await location.getLocation();
       } else {
         return;
       }
@@ -179,14 +179,18 @@ class _MyHomePageState extends State<MyHomePage> {
             ? 'Learn'
             : _currentIndex == 2
                 ? "Service"
-                : _currentIndex == 3 ? 'Sell' : 'Rent';
-    var latitude = currentLocation['latitude'];
-    var longitude = currentLocation['longitude'];
+                : _currentIndex == 3
+                    ? 'Sell'
+                    : _currentIndex == 4 ? 'Rent' : 'Jobs';
+    var latitude = _currentLocation['latitude'];
+    var longitude = _currentLocation['longitude'];
     var radiusInKm = _currentIndex == 0
         ? 20.0
         : _currentIndex == 1.0
             ? 700.0
-            : _currentIndex == 2 ? 30.0 : _currentIndex == 3 ? 10.0 : 10.0;
+            : _currentIndex == 2
+                ? 30.0
+                : _currentIndex == 3 ? 10.0 : _currentIndex == 4 ? 10.0 : 50.0;
 
     await Geofire.initialize('locations/$path');
 
@@ -221,7 +225,7 @@ class _MyHomePageState extends State<MyHomePage> {
               LengthUnit.Meter,
               LatLng(vendorLat, vendorLon),
               LatLng(
-                  currentLocation['latitude'], currentLocation['longitude']));
+                  _currentLocation['latitude'], _currentLocation['longitude']));
           final distanceTxt =
               meters >= 1000 ? '${(meters / 1000.0)}  km' : '$meters m';
           setState(() {
@@ -242,10 +246,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
     //when the widget is build, then runs this callback
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      currentLocation = await location.getLocation();
+      _currentLocation = await location.getLocation();
       Clipboard.setData(ClipboardData(
           text:
-              '${currentLocation['latitude']},${currentLocation['longitude']}'));
+              '${_currentLocation['latitude']},${_currentLocation['longitude']}'));
       _refreshIndicatorKey.currentState.show();
     });
   }
@@ -268,18 +272,41 @@ class _MyHomePageState extends State<MyHomePage> {
         type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
-              icon: Image.asset('images/delivery.png',height: bottomNavBarIconSize,),
+              icon: Image.asset(
+                'images/delivery.png',
+                height: bottomNavBarIconSize,
+              ),
               title: Text('Delivery')),
           BottomNavigationBarItem(
-              icon: Image.asset('images/learn.png',height: bottomNavBarIconSize,), title: Text('Learn')),
+              icon: Image.asset(
+                'images/learn.png',
+                height: bottomNavBarIconSize,
+              ),
+              title: Text('Learn')),
           BottomNavigationBarItem(
-              icon: Image.asset('images/service.png',height: bottomNavBarIconSize,), title: Text('Service')),
+              icon: Image.asset(
+                'images/service.png',
+                height: bottomNavBarIconSize,
+              ),
+              title: Text('Service')),
           BottomNavigationBarItem(
-              icon: Image.asset('images/sell.png',height: bottomNavBarIconSize,), title: Text('Sell')),
+              icon: Image.asset(
+                'images/sell.png',
+                height: bottomNavBarIconSize,
+              ),
+              title: Text('Sell')),
           BottomNavigationBarItem(
-              icon: Image.asset('images/rent.png',height: bottomNavBarIconSize,), title: Text('Rent')),
+              icon: Image.asset(
+                'images/rent.png',
+                height: bottomNavBarIconSize,
+              ),
+              title: Text('Rent')),
           BottomNavigationBarItem(
-              icon: Image.asset('images/jobs.png',height: bottomNavBarIconSize,), title: Text('Jobs')),
+              icon: Image.asset(
+                'images/jobs.png',
+                height: bottomNavBarIconSize,
+              ),
+              title: Text('Jobs')),
         ],
       ),
       appBar: AppBar(
@@ -301,9 +328,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 var lat = response.result.geometry.location.lat;
                 var long = response.result.geometry.location.lng;
                 print('Lat Long = $lat:$long');
+
+                _currentLocation['latitude'] = lat;
+                _currentLocation['longitude'] = long;
+
+                _refreshIndicatorKey.currentState.show();
               }
-            } else {
-              _locationSearchText.text = '';
             }
           },
           child: AbsorbPointer(
@@ -324,16 +354,18 @@ class _MyHomePageState extends State<MyHomePage> {
           tooltip: 'Get locations',
           onPressed: () async {
             //getting the location
-            currentLocation = await location.getLocation();
-            currentLocation['latitude'] = 6.887625;
-            currentLocation['longitude'] = 79.873456;
+            _currentLocation = await location.getLocation();
+            print(
+                'current loc | lat: ${_currentLocation['latitude']} long: ${_currentLocation['longitude']}');
+
+            _locationSearchText.text = 'Your current location';
 
             manipulateDataTable();
             Clipboard.setData(ClipboardData(
                 text:
-                    '${currentLocation['latitude']},${currentLocation['longitude']}'));
+                    '${_currentLocation['latitude']},${_currentLocation['longitude']}'));
             await setLocation(
-                currentLocation['latitude'], currentLocation['longitude']);
+                _currentLocation['latitude'], _currentLocation['longitude']);
             print('location set in shared pref');
             _scaffoldKey.currentState.showSnackBar(SnackBar(
               content: Text('location obtained and copied'),
@@ -365,8 +397,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 case 'vndr_sttngs':
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (BuildContext context) => VendorSettingsScreen(
-                          currentLocation["latitude"],
-                          currentLocation["longitude"],
+                          _currentLocation["latitude"],
+                          _currentLocation["longitude"],
                           widget._loggedInUser.uid)));
                   break;
 
