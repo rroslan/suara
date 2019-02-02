@@ -14,6 +14,8 @@ class VendorSettings{
   bool isLoc1Def;
   int credits;
   String salesContact;
+  bool creditPolicy;
+  DateTime lastOnline;
 
   toJson(){
     return{
@@ -35,12 +37,16 @@ class VendorSettings{
       'isOnline':isOnline,
       'isLoc1Def':isLoc1Def,
       'credits':credits??initialCredit,
-      'salesContact':salesContact
+      'salesContact':salesContact,
+      'creditPolicy':creditPolicy,
+      'lastOnline':lastOnline
     };
   }
   VendorSettings(this.uid){
     isLoc1Def = true;
     isOnline = false;
+    creditPolicy = false;
+    lastOnline = DateTime.now();
   }
 
   VendorSettings.fromJson(dynamic f){
@@ -57,5 +63,7 @@ class VendorSettings{
     isLoc1Def = f['isLoc1Def'] == null ? true : f['isLoc1Def'];
     credits = f['credits'] ?? initialCredit;
     salesContact = f['salesContact'];
+    creditPolicy = f['creditPolicy'];
+    lastOnline = f['lastOnline'];
   }
 }
