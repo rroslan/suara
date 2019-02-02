@@ -19,5 +19,4 @@ Future<dynamic> getLocation() async {
 
 final int initialCredit = 3;
 
-final String kPlacesAPIKey = 'AIzaSyCxfwz1Bo3KmijBjPqDZkRNzH8Qza3d7b8';
 final double bottomNavBarIconSize = 25.0;
