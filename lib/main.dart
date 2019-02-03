@@ -437,7 +437,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               },
                               child: ListTile(
                                 title: Text(
-                                  business.businessName ?? 'Unspecified Business Name',
+                                  business.businessName ?? 'Unspecified',
                                   style: TextStyle(fontSize: 20.0),
                                 ),
                                 subtitle: Text(business.businessDesc ?? 'Unspecified'),

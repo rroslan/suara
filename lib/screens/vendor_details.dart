@@ -87,12 +87,12 @@ class VendorDetailsScreenState extends State<VendorDetailsScreen> {
   Widget build(BuildContext context) {
     var businessName = _vendorDetails != null
         ? _vendorDetails.businessName == null
-            ? 'Please wait...'
+            ? 'Unspecified'
             : _vendorDetails.businessName
         : 'Please wait...';
     var businessDesc = _vendorDetails != null
         ? _vendorDetails.businessDesc == null
-            ? 'Please wait...'
+            ? 'Unspecified'
             : _vendorDetails.businessDesc
         : 'Please wait...';
     return Scaffold(
