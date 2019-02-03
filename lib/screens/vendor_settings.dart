@@ -421,7 +421,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
           actions: <Widget>[
             Row(
               children: <Widget>[
-                Text('${_vendorSettings.credits ?? initialCredit} MYR'),
+                Text('${_vendorSettings.credits ?? initialCredit}'),
                 IconButton(
                   icon: Icon(Icons.payment),
                   tooltip: 'Buy credit',
