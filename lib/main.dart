@@ -361,7 +361,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
             _locationSearchText.text = 'Your current location';
 
-            manipulateDataTable();
+            //manipulateDataTable();
+            _refreshIndicatorKey.currentState.show();
             Clipboard.setData(ClipboardData(
                 text:
                     '${_currentLocation['latitude']},${_currentLocation['longitude']}'));
@@ -436,10 +437,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               },
                               child: ListTile(
                                 title: Text(
-                                  business.businessName,
+                                  business.businessName ?? 'Unspecified Business Name',
                                   style: TextStyle(fontSize: 20.0),
                                 ),
-                                subtitle: Text(business.businessDesc),
+                                subtitle: Text(business.businessDesc ?? 'Unspecified'),
                                 trailing: FittedBox(
                                   child: Column(
                                     children: <Widget>[
