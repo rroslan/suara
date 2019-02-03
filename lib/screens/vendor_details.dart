@@ -73,9 +73,10 @@ class VendorDetailsScreenState extends State<VendorDetailsScreen> {
 
   Future<dynamic> openWazeLink() async {
     try {
+      var defaultLocation = _vendorDetails.isLoc1Def ? _vendorDetails.location : _vendorDetails.location2;
       var result = await platform.invokeMethod('openWazeClientApp', {
-        'latitude': '${_vendorDetails.location['latitude']}',
-        'longitude': '${_vendorDetails.location['longitude']}'
+        'latitude': '${defaultLocation['latitude']}',
+        'longitude': '${defaultLocation['longitude']}'
       });
       print(result);
     } catch (error) {
