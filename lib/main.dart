@@ -440,7 +440,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                   business.businessName ?? 'Unspecified',
                                   style: TextStyle(fontSize: 20.0),
                                 ),
-                                subtitle: Text(business.businessDesc ?? 'Unspecified'),
+                                subtitle: Text(
+                                    business.businessDesc ?? 'Unspecified'),
                                 trailing: FittedBox(
                                   child: Column(
                                     children: <Widget>[
