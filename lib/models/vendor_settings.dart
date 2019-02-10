@@ -2,6 +2,7 @@ import 'package:suara/common/common.dart';
 
 class VendorSettings{
   String uid;
+  String email;
   String businessName;
   String businessDesc;
   String fbURL;
@@ -20,6 +21,7 @@ class VendorSettings{
   toJson(){
     return{
       'uid':uid,
+      'email':email,
       'businessName':businessName,
       'businessDesc':businessDesc,
       'fbURL':fbURL,
@@ -42,7 +44,7 @@ class VendorSettings{
       'lastOnline':lastOnline
     };
   }
-  VendorSettings(this.uid){
+  VendorSettings(this.uid,this.email){
     isLoc1Def = true;
     isOnline = false;
     creditPolicy = false;
@@ -51,6 +53,7 @@ class VendorSettings{
 
   VendorSettings.fromJson(dynamic f){
     uid = f['uid'];
+    email=f['email'];
     businessName = f['businessName'];
     businessDesc = f['businessDesc'];
     fbURL = f['fbURL'];
