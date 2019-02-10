@@ -401,7 +401,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       builder: (BuildContext context) => VendorSettingsScreen(
                           _currentLocation["latitude"],
                           _currentLocation["longitude"],
-                          widget._loggedInUser.uid)));
+                          widget._loggedInUser.uid,
+                          widget._loggedInUser.email)));
                   break;
 
                 case 'tos':
