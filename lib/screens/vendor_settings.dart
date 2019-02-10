@@ -14,8 +14,9 @@ class VendorSettingsScreen extends StatefulWidget {
   final double _latitude;
   final double _longitude;
   final String _loggedInUserId;
+  final String _loggedInUserEmail;
 
-  VendorSettingsScreen(this._latitude, this._longitude, this._loggedInUserId);
+  VendorSettingsScreen(this._latitude, this._longitude, this._loggedInUserId,this._loggedInUserEmail);
 
   @override
   State<StatefulWidget> createState() => VendorSettingsScreenState();
@@ -57,7 +58,7 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _vendorSettings = VendorSettings(widget._loggedInUserId);
+    _vendorSettings = VendorSettings(widget._loggedInUserId,widget._loggedInUserEmail);
     setState(() {
       _vendorSettings.location = {
         'latitude': widget._latitude,
