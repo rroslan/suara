@@ -180,6 +180,12 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
     }
 
     showProgressSnackBar(_scaffoldKey.currentState, 'Saving changes...');
+    //get global credit policy from the database
+    var docSnapShot = await Firestore.instance.collection('globals').document('vars').get();
+    if(docSnapShot.exists){
+      _vendorSettings.creditPolicy = docSnapShot.data['creditpolicy'];
+    }
+
     await Firestore.instance
         .collection('vendorsettings')
         .document(_vendorSettings.uid)
