@@ -122,6 +122,40 @@ class LoginPage extends StatelessWidget {
                         initiateGoogleLogin(context);
                       },
                     ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 20.0),
+                  ),
+                  Container(
+                    child: Row(
+                      children: <Widget>[
+                        Text('Read our '),
+                        GestureDetector(
+                          child: Text(
+                            'Terms of Service',
+                            style: TextStyle(
+                                color: Theme.of(context).accentColor,
+                                decoration: TextDecoration.underline),
+                          ),
+                          onTap: () {
+                            launch('https://www.labuanservices.com/tos');
+                          },
+                        ),
+                        Text(' & '),
+                        GestureDetector(
+                          child: Text(
+                            'Privacy Policy',
+                            style: TextStyle(
+                                color: Theme.of(context).accentColor,
+                                decoration: TextDecoration.underline),
+                          ),
+                          onTap: () {
+                            launch('https://www.labuanservices.com/policy');
+                          },
+                        ),
+                        Text(' online'),
+                      ],
+                    ),
                   )
                 ],
               ),
