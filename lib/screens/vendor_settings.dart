@@ -81,7 +81,6 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
         .snapshots()
         .listen((data) {
       if (data.documents.length > 0) {
-        print(data.documents[0]['businessDesc']);
         var result = VendorSettings.fromJson(data.documents[0]);
         setState(() {
           _vendorSettings = result;
