@@ -9,6 +9,7 @@ import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:Suara/screens/vendor_settings/category_settings_page.dart';
 import 'package:Suara/screens/vendor_settings/location_settings_page.dart';
 import 'package:Suara/screens/vendor_settings/normal_settings_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class VendorSettingsScreen extends StatefulWidget {
   final double _latitude;
@@ -16,7 +17,8 @@ class VendorSettingsScreen extends StatefulWidget {
   final String _loggedInUserId;
   final String _loggedInUserEmail;
 
-  VendorSettingsScreen(this._latitude, this._longitude, this._loggedInUserId,this._loggedInUserEmail);
+  VendorSettingsScreen(this._latitude, this._longitude, this._loggedInUserId,
+      this._loggedInUserEmail);
 
   @override
   State<StatefulWidget> createState() => VendorSettingsScreenState();
@@ -58,7 +60,8 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _vendorSettings = VendorSettings(widget._loggedInUserId,widget._loggedInUserEmail);
+    _vendorSettings =
+        VendorSettings(widget._loggedInUserId, widget._loggedInUserEmail);
     setState(() {
       _vendorSettings.location = {
         'latitude': widget._latitude,
@@ -180,8 +183,9 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
 
     showProgressSnackBar(_scaffoldKey.currentState, 'Saving changes...');
     //get global credit policy from the database
-    var docSnapShot = await Firestore.instance.collection('globals').document('vars').get();
-    if(docSnapShot.exists){
+    var docSnapShot =
+        await Firestore.instance.collection('globals').document('vars').get();
+    if (docSnapShot.exists) {
       _vendorSettings.creditPolicy = docSnapShot.data['creditpolicy'];
     }
 
@@ -245,17 +249,34 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
     return result;
   }
 
+  void makePhoneCall(String phoneNo) async {
+    var url = 'tel:$phoneNo';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'could not launch $url';
+    }
+  }
+
   void goOnline() async {
     //LOGIC: checking if credit policy is enabled. If true, decreasing credits by 1
-    if(_vendorSettings.creditPolicy){
+    if (_vendorSettings.creditPolicy) {
       //credits should not decrease each time the vendor comes online.
       //should be only if he came online on a specific day
 
       var today = DateTime.now();
-      if(!(_vendorSettings.lastOnline.year == today.year && _vendorSettings.lastOnline.month == today.month && _vendorSettings.lastOnline.day == today.day)){
+      if (!(_vendorSettings.lastOnline.year == today.year &&
+          _vendorSettings.lastOnline.month == today.month &&
+          _vendorSettings.lastOnline.day == today.day)) {
         _vendorSettings.credits--;
         _vendorSettings.lastOnline = today;
-        Firestore.instance.collection('vendorsettings').document(_vendorSettings.uid).updateData({'credits':_vendorSettings.credits,'lastOnline':_vendorSettings.lastOnline});
+        Firestore.instance
+            .collection('vendorsettings')
+            .document(_vendorSettings.uid)
+            .updateData({
+          'credits': _vendorSettings.credits,
+          'lastOnline': _vendorSettings.lastOnline
+        });
       }
     }
     //checking if the default location is null. if it is, asking if want to fetch the current location
@@ -402,6 +423,20 @@ class VendorSettingsScreenState extends State<VendorSettingsScreen> {
             inactiveThumbColor: Colors.grey,
             onChanged: (val) async {
               if (val) {
+                if (_vendorSettings.credits <= 0) {
+                  _scaffoldKey.currentState.showSnackBar(SnackBar(
+                    backgroundColor: Colors.red,
+                    content: Text(
+                        'Your credit limit is over. Please contact your sales agent'),
+                    action: SnackBarAction(
+                        label: 'CALL',
+                        textColor: Colors.white,
+                        onPressed: () {
+                          makePhoneCall(_vendorSettings.salesContact);
+                        }),
+                  ));
+                  return;
+                }
                 goOnline();
               } else {
                 goOffline();
