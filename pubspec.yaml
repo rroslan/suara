@@ -1,4 +1,4 @@
-name: suara
+name: Suara
 description: Services within location
 
 # The following defines the version and build number for your application.
@@ -30,11 +30,16 @@ dependencies:
   latlong: ^0.6.1
   url_launcher: ^4.0.3
   flutter_google_places: 0.1.4+1
+  flutter_launcher_icons: "^0.7.0"
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+flutter_icons:
+  android: 'launcher_icon'
+  image_path: 'images/ic_launcher.png'
 
 
 # For information on the generic Dart part of this file, see the
