@@ -1,4 +1,4 @@
-import 'package:suara/common/common.dart';
+import 'package:Suara/common/common.dart';
 
 class VendorSettings{
   String uid;

@@ -2,13 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart';
-import 'package:suara/common/common.dart';
-import 'package:suara/models/vendor_settings.dart';
-import 'package:suara/screens/payment_topup.dart';
+import 'package:Suara/common/common.dart';
+import 'package:Suara/models/vendor_settings.dart';
+import 'package:Suara/screens/payment_topup.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
-import 'package:suara/screens/vendor_settings/category_settings_page.dart';
-import 'package:suara/screens/vendor_settings/location_settings_page.dart';
-import 'package:suara/screens/vendor_settings/normal_settings_page.dart';
+import 'package:Suara/screens/vendor_settings/category_settings_page.dart';
+import 'package:Suara/screens/vendor_settings/location_settings_page.dart';
+import 'package:Suara/screens/vendor_settings/normal_settings_page.dart';
 
 class VendorSettingsScreen extends StatefulWidget {
   final double _latitude;
