@@ -1,4 +1,4 @@
-package biz.eastservices.suara;
+package com.labuanservices.suara;
 
 import android.content.Intent;
 import android.net.Uri;
