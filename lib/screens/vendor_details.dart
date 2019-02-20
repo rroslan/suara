@@ -14,7 +14,7 @@ class VendorDetailsScreen extends StatefulWidget {
 }
 
 class VendorDetailsScreenState extends State<VendorDetailsScreen> {
-  static const platform = const MethodChannel('saura.biz/deeplinks');
+  static const platform = const MethodChannel('suara/deeplinks');
   VendorSettings _vendorDetails;
 
   @override
