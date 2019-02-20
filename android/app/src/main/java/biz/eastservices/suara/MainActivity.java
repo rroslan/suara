@@ -9,7 +9,7 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugins.GeneratedPluginRegistrant;
 
 public class MainActivity extends FlutterActivity {
-  private static final String CHANNEL = "saura.biz/deeplinks";
+  private static final String CHANNEL = "suara/deeplinks";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
